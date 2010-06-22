@@ -72,3 +72,11 @@ x2
 x2 <- x
 afill(x2, local=T) <- array(-(1:6),dim=c(3,2), dimnames=list(LETTERS[2:4],letters[24:25]))
 x2
+
+# 1-d named-vector example
+x <- c(A=0,B=0,C=0,D=0)
+afill(x) <- c(B=1,C=2)
+x
+# return value is the part of x that is assigned to
+(afill(x) <- c(B=1,C=2))
+(x[2:3] <- 0)
