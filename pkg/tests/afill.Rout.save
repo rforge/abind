@@ -73,7 +73,7 @@ FALSE  TRUE
  [1] 1 1 2 2 1 1 2 2 1 1 2 2 3 3 4 4 3 3 4 4 3 3 4 4 5 5 6 6 5 5 6 6 5 5 6 6
 > c(matrix(1:6, ncol=3)[rep(1:2, each=2),rep(1:3,each=3)])
  [1] 1 1 2 2 1 1 2 2 1 1 2 2 3 3 4 4 3 3 4 4 3 3 4 4 5 5 6 6 5 5 6 6 5 5 6 6
->
+> 
 > afill(x, T, , T, ) <- matrix(1:6,ncol=3, dimnames=list(c("A","B"),c("W","X","Y")))
 > x[1,c("A","B"),1,c("W","X","Y")]
   W X Y
@@ -109,7 +109,7 @@ FALSE  TRUE
 > x1 <- x
 > x1[2:4,2:3] <- -(1:6)
 > x1
-  w  x  y  z 
+  w  x  y  z
 A 1  7 13 19
 B 2 -1 -4 20
 C 3 -2 -5 21
@@ -119,7 +119,7 @@ F 6 12 18 24
 > x1 <- x
 > x1[LETTERS[2:4],letters[24:25]] <- -(1:6)
 > x1
-  w  x  y  z 
+  w  x  y  z
 A 1  7 13 19
 B 2 -1 -4 20
 C 3 -2 -5 21
@@ -129,7 +129,7 @@ F 6 12 18 24
 > x2 <- x
 > afill(x2) <- array(-(1:6),dim=c(3,2), dimnames=list(LETTERS[2:4],letters[24:25]))
 > x2
-  w  x  y  z 
+  w  x  y  z
 A 1  7 13 19
 B 2 -1 -4 20
 C 3 -2 -5 21
@@ -146,7 +146,7 @@ Calls: afill<- -> afill<-.default
 > x2 <- x
 > afill(x2,excess.ok=T) <- array(-(1:6),dim=c(3,2), dimnames=list(LETTERS[5:7],letters[24:25]))
 > x2
-  w  x  y  z 
+  w  x  y  z
 A 1  7 13 19
 B 2  8 14 20
 C 3  9 15 21
@@ -156,7 +156,7 @@ F 6 -2 -5 24
 > x2 <- x
 > afill(x2, local=T) <- array(-(1:6),dim=c(3,2), dimnames=list(LETTERS[2:4],letters[24:25]))
 > x2
-  w  x  y  z 
+  w  x  y  z
 A 1  7 13 19
 B 2 -1 -4 20
 C 3 -2 -5 21
