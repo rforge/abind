@@ -70,15 +70,15 @@ abind <- function(..., along=N, rev.along=NULL, new.names=NULL,
     ## returned by match.call() are for the entire structure
     ## E.g., compare:
     ## > (function(...)browser())(1:10,letters)
-    ## Called from: (function(...)  browser()).... 
+    ## Called from: (function(...)  browser())....
     ## b()> match.call(expand.dots=FALSE)$...
     ## list(1:10, letters)
     ## With:
     ## > test <- function(...) browser()
     ## > do.call("test", list(1:3,letters[1:4]))
-    ## Called from: test(c(1, 2, 3), c("a", "b.... 
+    ## Called from: test(c(1, 2, 3), c("a", "b....
     ## b(test)> match.call(expand.dots=FALSE)$...
-    ## list(c(1, 2, 3), c("a", "b", "c", "d")    
+    ## list(c(1, 2, 3), c("a", "b", "c", "d")
 
     ## Create deparsed versions of actual arguments in arg.alt.names
     ## These are used for error messages
@@ -132,7 +132,7 @@ abind <- function(..., along=N, rev.along=NULL, new.names=NULL,
     ## length(arg.list) columns: arg.dim[j,i]==dim(arg.list[[i]])[j],
     ## The dimension order of arg.dim is original
     arg.dim <- matrix(integer(1), nrow=N, ncol=length(arg.names))
-    
+
     for (i in 1:length(arg.list)) {
         m <- arg.list[[i]]
         m.changed <- FALSE
@@ -232,21 +232,18 @@ abind <- function(..., along=N, rev.along=NULL, new.names=NULL,
     if (!use.along.names)
         dimnames.new[along] <- list(NULL)
 
-    ## construct the output array from the pieces
-    if (TRUE) {
-        ## don't use names in unlist because this can quickly exhaust memory when
-        ## abind is called with "do.call" (which creates horrendous names in S-PLUS)
-        out <- array(unlist(arg.list, use.names=FALSE),
-                     dim=c( arg.dim[-along,1], sum(arg.dim[along,])),
-                     dimnames=dimnames.new[perm])
-        ## permute the output array to put the join dimension back in the right place
-        if (any(order(perm)!=seq(along=perm)))
-            out <- aperm(out, order(perm))
-    } else {
-        ## Experimenting here with more efficient ways of constructing the result
-        out <- numeric(prod(c( arg.dim[-along,1], sum(arg.dim[along,]))))
-        return(out)
-    }
+    ## Construct the output array from the pieces.
+    ## Could experiment here with more efficient ways of constructing the
+    ## result than using unlist(), e.g.
+    ##    out <- numeric(prod(c( arg.dim[-along,1], sum(arg.dim[along,]))))
+    ## Don't use names in unlist because this can quickly exhaust memory when
+    ## abind is called with "do.call" (which creates horrendous names in S-PLUS).
+    out <- array(unlist(arg.list, use.names=FALSE),
+                 dim=c( arg.dim[-along,1], sum(arg.dim[along,])),
+                 dimnames=dimnames.new[perm])
+    ## permute the output array to put the join dimension back in the right place
+    if (any(order(perm)!=seq(along=perm)))
+        out <- aperm(out, order(perm))
 
     ## if new.names is list of character vectors, use whichever are non-null
     ## for dimension names, checking that they are the right length
