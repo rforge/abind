@@ -1,5 +1,6 @@
 abind <- function(..., along=N, rev.along=NULL, new.names=NULL,
-                  force.array=TRUE, make.names=use.anon.names, use.anon.names=FALSE, use.first.dimnames=FALSE)
+                  force.array=TRUE, make.names=use.anon.names, use.anon.names=FALSE,
+                  use.first.dimnames=FALSE, hier.names=FALSE)
 {
     arg.list <- list(...)
     if (is.list(arg.list[[1]]) && !is.data.frame(arg.list[[1]])) {
@@ -49,7 +50,7 @@ abind <- function(..., along=N, rev.along=NULL, new.names=NULL,
     }
 
     if (along>N || along<0)
-        stop("along must between 0 and ", N)
+        stop("along must be between 0 and ", N)
 
     pre <- seq(from=1, len=along-1)
     post <- seq(to=N-1, len=N-along)
@@ -67,18 +68,22 @@ abind <- function(..., along=N, rev.along=NULL, new.names=NULL,
 
     ## Be careful with dot.args, because if abind was called
     ## using do.call(), and had anonymous arguments, the expressions
-    ## returned by match.call() are for the entire structure
-    ## E.g., compare:
+    ## returned by match.call() are for the entire structure.
+    ## This can be a problem in S-PLUS, not sure about R.
+    ## E.g., in this one match.call() returns compact results:
     ## > (function(...)browser())(1:10,letters)
     ## Called from: (function(...)  browser())....
     ## b()> match.call(expand.dots=FALSE)$...
     ## list(1:10, letters)
-    ## With:
+    ## But in this one, match.call() returns evaluated results:
     ## > test <- function(...) browser()
     ## > do.call("test", list(1:3,letters[1:4]))
     ## Called from: test(c(1, 2, 3), c("a", "b....
     ## b(test)> match.call(expand.dots=FALSE)$...
     ## list(c(1, 2, 3), c("a", "b", "c", "d")
+    ## The problem here was largely mitigated by making abind()
+    ## accept a single list argument, which removes most of the
+    ## need for the use of do.call("abind", ...)
 
     ## Create deparsed versions of actual arguments in arg.alt.names
     ## These are used for error messages
@@ -214,9 +219,11 @@ abind <- function(..., along=N, rev.along=NULL, new.names=NULL,
         ## only use names if arg i contributes some elements
         if (arg.dim[along,i] > 0) {
             dnm.along <- arg.dimnames[[along,i]]
-            if (length(dnm.along)==arg.dim[along,i])
+            if (length(dnm.along)==arg.dim[along,i]) {
                 use.along.names <- TRUE
-            else {
+                if (hier.names && arg.names[i]!="")
+                    dnm.along <- paste(arg.names[i], dnm.along, sep=".")
+            } else {
                 ## make up names for the along dimension
                 if (arg.dim[along,i]==1)
                     dnm.along <- arg.names[i]
