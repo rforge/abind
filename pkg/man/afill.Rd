@@ -1,4 +1,5 @@
 \name{afill}
+\alias{afill}
 \alias{afill<-}
 \alias{afill<-.default}
 %- Also NEED an '\alias' for EACH other topic documented here.
@@ -80,7 +81,7 @@ a 0 0 0
 b 0 0 0
 c 0 0 0
 d 0 0 0
-> 
+>
 }
 
   The most complex usage of \code{afill} is to fill a sub-matrix in multiple
@@ -105,7 +106,7 @@ a 0 0 0
 b 0 1 3
 c 0 2 4
 d 0 0 0
-> 
+>
 }
 
 In the above usage, \code{afill} takes care of replicating \code{value}
