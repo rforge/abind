@@ -1,0 +1,138 @@
+> a <- array(1:6, dim=c(2,3), dimnames=list(letters[1:2],letters[23:25]))
+> b <- array(7:15, dim=c(3,3), dimnames=list(letters[3:5],letters[24:26]))
+> x <- varray(a,b)
+> a
+  w x y
+a 1 3 5
+b 2 4 6
+> b
+  x  y  z
+c 7 10 13
+d 8 11 14
+e 9 12 15
+> as.array(x)
+   w x  y  z
+a  1 3  5 NA
+b  2 4  6 NA
+c NA 7 10 13
+d NA 8 11 14
+e NA 9 12 15
+> x
+5 x 4 virtual matrix with dimnames:
+   [1] a, b, ..., e 
+   [2] w, x, y, z 
+with 2 sub-arrays:
+sub-array 1: 'a' (in env '.GlobalEnv') 2 x 3 matrix with dimnames:
+   [1] a, b 
+   [2] w, x, y 
+sub-array 2: 'b' (in env '.GlobalEnv') 3 x 3 matrix with dimnames:
+   [1] c, d, e 
+   [2] x, y, z 
+> 
+> x[c('a'),c('x','z'),drop=F]
+  x  z
+a 3 NA
+> x[c('a'),c('x'),drop=F]
+  x
+a 3
+> x[c('a'),c('z'),drop=F]
+   z
+a NA
+> x[c('b'),c('z'),drop=F]
+   z
+b NA
+> x[c('b'),c('y','z'),drop=F]
+  y  z
+b 6 NA
+> x[c('b','c'),c('y','z'),drop=F]
+   y  z
+b  6 NA
+c 10 13
+> x[c('d','b','c'),c('y','z'),drop=F]
+   y  z
+d 11 14
+b  6 NA
+c 10 13
+> x[c('b','c','d'),c('y','z'),drop=F]
+   y  z
+b  6 NA
+c 10 13
+d 11 14
+> x[c('a','b','c','d'),c('y','z'),drop=F]
+   y  z
+a  5 NA
+b  6 NA
+c 10 13
+d 11 14
+> x[c('a','a','c','d'),c('y','z'),drop=F]
+   y  z
+a  5 NA
+a  5 NA
+c 10 13
+d 11 14
+> x[c('c','a','d'),c('x','z'),drop=F]
+  x  z
+c 7 13
+a 3 NA
+d 8 14
+> x[c('a','a','c','d'),c(),drop=F]
+
+a
+a
+c
+d
+> x[c(),c('y','z'),drop=F]
+     y z
+> x[c(),c(),drop=F]
+<0 x 0 matrix>
+> 
+> x[c('a','c',NA),c('y','z'),drop=F]
+      y  z
+a     5 NA
+c    10 13
+<NA> NA NA
+> x[c('a',NA,'c'),c('y','z'),drop=F]
+      y  z
+a     5 NA
+<NA> NA NA
+c    10 13
+> x[c(NA,'a','c'),c('y','z'),drop=F]
+      y  z
+<NA> NA NA
+a     5 NA
+c    10 13
+> x[c(NA,'a','c'),c(NA,'y','z'),drop=F]
+     <NA>  y  z
+<NA>   NA NA NA
+a      NA  5 NA
+c      NA 10 13
+> 
+> x[c(NA,'a'),c(NA,'y','z'),drop=F]
+     <NA>  y  z
+<NA>   NA NA NA
+a      NA  5 NA
+> x[c('a',NA),c(NA,'y','z'),drop=F]
+     <NA>  y  z
+a      NA  5 NA
+<NA>   NA NA NA
+> 
+> x[cbind(c(2,4,3), 2)]
+[1] 4 8 7
+> x[cbind(c(4,2,3), 2)]
+[1] 8 4 7
+> as.array(x)[cbind(c(4,2,3), 2)]
+[1] 8 4 7
+> as.array(x)[c(T,F,F,F,F)]
+[1]  1  3  5 NA
+> x[c(T,F,F,F,F)]
+[1]  1  3  5 NA
+> as.array(x)[c(F,F,F,T,F)]
+[1] NA  8 11 14
+> x[c(F,F,F,T,F)]
+[1] NA  8 11 14
+> as.array(x)[c(T,F,F,F,T)]
+[1]  1 NA  3  9  5 12 NA 15
+> x[c(T,F,F,F,T)]
+[1]  1 NA  3  9  5 12 NA 15
+> 
+> 
