@@ -1,4 +1,4 @@
-varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL) {
+varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidxok=NA) {
     # Can call like this:
     #    varray(a, b, c)
     # or varray('a', 'b', 'c')
@@ -31,7 +31,8 @@ varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL) {
                 stop('argument ', name, ' does not refer to an array')
             sample <- asub(x, rep(list(1), length(dim(x))))
             list(name=name, dim=dim(x), dimnames=dimnames(x),
-                 env.name=x.env.name, sample=sample)
+                 env.name=x.env.name, sample=sample,
+                 naidxok=if (is.na(naidxok)) inherits(x, 'ff') else naidxok)
         })
     } else {
         # multiple arguments, could be names or objects
@@ -61,7 +62,8 @@ varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL) {
                 stop('argument ', name, ' does not refer to an array')
             sample <- asub(x, rep(list(1), length(dim(x))))
             list(name=name, dim=dim(x), dimnames=dimnames(x),
-                 env.name=x.env.name, sample=sample)
+                 env.name=x.env.name, sample=sample,
+                 naidxok=if (is.na(naidxok)) inherits(x, 'ff') else naidxok)
         })
     }
     if (along < 1 || along > length(info[[1]]$dim))
@@ -75,6 +77,7 @@ varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL) {
                  unique(unlist(lapply(info, function(x) x$dimnames[[i]]))))
     d <- sapply(dn, length)
     along.idx <- integer(d[along])
+    naidxok <- all(sapply(info, '[[', 'naidxok'))
     if (is.null(dimorder))
         dimorder <- seq(length(d))
     if (!identical(sort(as.numeric(dimorder)), as.numeric(seq(length(d)))))
@@ -88,7 +91,7 @@ varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL) {
         info[[i]]$map <- lapply(seq(along=dn), function(j) match(dn[[j]], info[[i]]$dimnames[[j]]))
     }
     structure(list(dim=d, dimnames=dn, along=along, info=info,
-                   along.idx=along.idx, dimorder=dimorder),
+                   along.idx=along.idx, dimorder=dimorder, naidxok=naidxok),
               class='varray')
 }
 
@@ -185,6 +188,9 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
     Nidxs <- nargs() - 1 - (!missing(drop))
     d <- x$dim
     dn <- x$dimnames
+    naidxok <- x$naidxok
+    if (is.null(naidxok))
+        naidxok <- FALSE
     so <- x$dimorder
     if (is.null(so))
         so <- x$storage.order
@@ -259,14 +265,43 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             # map to indices for this submatrix
             jj <- lapply(seq(len=length(x$dim)), function(j)
                 return(x$info[[i]]$map[[j]][ii[[j]]]))
-            if (!is.null(x$info[[i]]$value)) {
-                y <- do.call('[', c(list(x$info[[i]]$value), jj, list(drop=FALSE)))
+            has.nas <- FALSE
+            if (!naidxok) {
+                # jj1 is the indices without any NA's
+                # jj2 is how to find the indices including NA's in jj1
+                jj1 <- jj
+                jj2 <- jj
+                for (k in seq(along=jj)) {
+                    if (any(jj.na <- is.na(jj[[k]]))) {
+                        jj1[[k]] <- jj[[k]][!jj.na]
+                        has.nas <- TRUE
+                    }
+                    jj2[[k]] <- match(jj[[k]], jj1[[k]])
+                }
+            }
+            if (naidxok || !has.nas) {
+                if (!is.null(x$info[[i]]$value)) {
+                    y <- do.call('[', c(list(x$info[[i]]$value), jj, list(drop=FALSE)))
+                } else {
+                    if (is.null(x$info[[i]]$env.name))
+                        yy <- get(x$info[[i]]$name, pos=1)
+                    else
+                        yy <- get(x$info[[i]]$name, envir=as.environment(x$info[[i]]$env.name))
+                    y <- do.call('[', c(list(yy), jj, list(drop=FALSE)))
+                }
             } else {
-                if (is.null(x$info[[i]]$env.name))
-                    yy <- get(x$info[[i]]$name, pos=1)
-                else
-                    yy <- get(x$info[[i]]$name, envir=as.environment(x$info[[i]]$env.name))
-                y <- do.call('[', c(list(yy), jj, list(drop=FALSE)))
+                if (!is.null(x$info[[i]]$value)) {
+                    y1 <- do.call('[', c(list(x$info[[i]]$value), jj1, list(drop=FALSE)))
+                } else {
+                    if (is.null(x$info[[i]]$env.name))
+                        yy <- get(x$info[[i]]$name, pos=1)
+                    else
+                        yy <- get(x$info[[i]]$name, envir=as.environment(x$info[[i]]$env.name))
+                    y1 <- do.call('[', c(list(yy), jj1, list(drop=FALSE)))
+                }
+                # we assume that the object that is result of indexing can handle NA's in indices
+                # (ordinary R arrays are fine with NA's in indices, it's ff arrays that are not)
+                y <- do.call('[', c(list(y1), jj2, list(drop=FALSE)))
             }
             dimnames(y) <- NULL
             y

@@ -10,7 +10,7 @@
   not store their actual data.
 }
 \usage{
-varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL)
+varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL, naidxok = NA)
 \method{as.array}{varray}(x, \dots)
 }
 \arguments{
@@ -36,6 +36,12 @@ varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL)
 \item{envir}{
   Where to find the sub-arrays (can be an environment name, or an
   environment, as long as the environment can be recovered by \code{as.environment(environmentName(envir))}).
+}
+\item{naidxok}{
+  Logical value indicating whether the component objects can handle
+  \code{NA}'s in indices.  Notably, \code{ff} objects cannot.  The
+  default value is \code{FALSE} for objects that inherit from class
+  \code{ff} and \code{TRUE} for other objects.
 }
 \item{x}{
   A \code{varray} object.

@@ -1,6 +1,6 @@
 Package: varray
-Version: 1.0-1
-Date: 2012-04-22
+Version: 1.0-2
+Date: 2012-05-22
 Title: Create virtual arrays
 Author: Tony Plate <tplate@acm.org>
 Maintainer: Tony Plate <tplate@acm.org>
