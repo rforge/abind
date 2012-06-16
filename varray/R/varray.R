@@ -1,4 +1,4 @@
-varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidxok=NA) {
+varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidxok=NA, dimnames=NULL) {
     # Can call like this:
     #    varray(a, b, c)
     # or varray('a', 'b', 'c')
@@ -75,6 +75,10 @@ varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidx
     }
     dn <- lapply(seq(len=length(info[[1]]$dim)), function(i)
                  unique(unlist(lapply(info, function(x) x$dimnames[[i]]))))
+    if (!is.null(dimnames))
+        for (in in seq(along=dn))
+            if (!is.null(dimnames[[i]]))
+                dn[[i]] <- dimnames[[i]]
     d <- sapply(dn, length)
     along.idx <- integer(d[along])
     naidxok <- all(sapply(info, '[[', 'naidxok'))
@@ -458,5 +462,5 @@ is.true <- function(x) (x & !is.na(x))
 "length<-.varray" <- function(x, value) stop('length for varray is read-only')
 "mode<-.varray" <- function(x, value) stop('mode for varray is read-only')
 "storage.mode<-.varray" <- function(x, value) stop('storage.mode for varray is read-only')
-"[<-.varray" <- function(x, i, j, ..., value) stop('cannot replace parts a varray (varray is read-only -- work with the sub-arrays)')
+"[<-.varray" <- function(x, i, j, ..., value) stop('cannot replace parts a varray (varray is read-only -- you must work with the sub-arrays)')
 

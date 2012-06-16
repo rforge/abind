@@ -10,7 +10,8 @@
   not store their actual data.
 }
 \usage{
-varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL, naidxok = NA)
+varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL,
+       naidxok = NA, dimnames = NULL)
 \method{as.array}{varray}(x, \dots)
 }
 \arguments{
@@ -43,22 +44,32 @@ varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL, naidxok
   default value is \code{FALSE} for objects that inherit from class
   \code{ff} and \code{TRUE} for other objects.
 }
+\item{dimnames}{
+  Optional dimnames to use instead of the union of dimnames of the
+  components.
+  Must be a list of character vectors.  Null components are ignored.
+  E.g., supplying \code{dimnames=list(NULL, c('a','b','c'))} would tell
+  varray to use the usual rownames (i.e., the union of the rownames of
+  the components) but to use \code{c('a','b','c')} as column names.  If
+  some components have other column names, those other columns will be
+  inaccessible through the varray object.
+}
 \item{x}{
   A \code{varray} object.
 }
 }
 \details{
-  Sub-arrays are stored by reference by name.  At the time of object
-  extraction the sub-arrays must be retrieved.  This creates the
+  Component arrays are stored by reference (by name.)  At the time of subset
+  extraction the component arrays will be retrieved.  This creates the
   possibility for retrieving an unintended object of the same name.
-  To minimize this possibility, the environments which are searched to
-  find the sub-arrays are limited as follows:
+  To minimize this possibility, the environments searched to
+  find the component arrays are limited to the following:
   \itemize{
-    \item If \code{env.name} is \code{FALSE} the global environment and
+    \item If \code{env.name} is \code{FALSE}; the global environment and
     the rest of the search path
-    \item If \code{env.name} is \code{TRUE} the supplied environment
+    \item If \code{env.name} is \code{TRUE}; the supplied environment
     \code{envir}, or, if that was \code{NULL}, the environment in which
-    the object was found at the time the \code{varray} was constructed.
+    the component was found at the time the \code{varray} was constructed.
   }
   Note that this makes it currently impossible for a \code{varray} to
   refer to objects that reside in an unnamed environment or one not on
