@@ -1,15 +1,10 @@
-varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidxok=NA, dimnames=NULL) {
+varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidxok=NA, dimnames=NULL, comp.name=NULL) {
     # Can call like this:
     #    varray(a, b, c)
     # or varray('a', 'b', 'c')
     # or varray(c('a', 'b', 'c'))
     # Still need to figure out if need to record where to find the objects (i.e., which environments)
     dotv <- list(...)
-    fixGlobalEnvName <- function(name) {
-        if (name=='R_GlobalEnv') '.GlobalEnv'
-        else if (name=='') stop('cannot use an unnamed environment')
-        else name
-    }
     if (is.character(envir))
         envir <- as.environment(envir)
     if (length(dotv)==1 && is.character(dotv[[1]])) {
@@ -76,7 +71,7 @@ varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidx
     dn <- lapply(seq(len=length(info[[1]]$dim)), function(i)
                  unique(unlist(lapply(info, function(x) x$dimnames[[i]]))))
     if (!is.null(dimnames))
-        for (in in seq(along=dn))
+        for (i in seq(along=dn))
             if (!is.null(dimnames[[i]]))
                 dn[[i]] <- dimnames[[i]]
     d <- sapply(dn, length)
@@ -84,23 +79,54 @@ varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidx
     naidxok <- all(sapply(info, '[[', 'naidxok'))
     if (is.null(dimorder))
         dimorder <- seq(length(d))
-    if (!identical(sort(as.numeric(dimorder)), as.numeric(seq(length(d)))))
-        stop('dimorder must be 1:length(d) in some permutation')
+    else
+        if (!identical(sort(as.numeric(dimorder)), as.numeric(seq(length(d)))))
+            stop('dimorder must be 1:length(d) in some permutation')
+    # convert d,dn to user dimorder
     if (!all(dimorder == seq(length(d)))) {
         d <- d[dimorder]
         dn <- dn[dimorder]
     }
+    rdimorder <- order(dimorder)
+    alongd <- rdimorder[along]
     for (i in seq(to=1, from=length(info))) {
-        along.idx[match(info[[i]]$dimnames[[along]], dn[[along]])] <- i
-        info[[i]]$map <- lapply(seq(along=dn), function(j) match(dn[[j]], info[[i]]$dimnames[[j]]))
+        along.idx[match(info[[i]]$dimnames[[alongd]], dn[[along]])] <- i
+        info[[i]]$map <- lapply(seq(along=dn), function(j) match(dn[[j]], info[[i]]$dimnames[[rdimorder[j]]]))[rdimorder]
     }
-    structure(list(dim=d, dimnames=dn, along=along, info=info,
-                   along.idx=along.idx, dimorder=dimorder, naidxok=naidxok),
+    # Components of a varray object (everything at the top level is stored in terms of user dimensions)
+    # dim:       the combined dim
+    # dimnames:  the combined dimnames
+    # along:     the binding dimension
+    # info:      a list of lists, one component per subcomponent, containing:
+    #       NOTE: everything inside info is stored in terms of the native dimorder, not the user dimorder
+    #       name:     name of object
+    #       dim:      cached dim of object (in terms of the object, before applying dimorder)
+    #       dimnames: cached dimnames of the object (in terms of the object, before applying dimorder)
+    #       env.name: name of the environment to find the object in
+    #       sample:   a sample element
+    #       naidxok:  logical, indicating if NA indices are permitted (e.g., FALSE for matrix, TRUE for vector and data.frame)
+    #       map:      a list of integer vectors showing how top-level dimnames map to this subcomponent.
+    #                 has NA entries where the top-level dimnames are not present in this subcomponent.
+    # along.idx: a vector containing the subindex for each element of the binding dimension
+    # dimorder:   how to permute the underlying dimensions to arrive at the user-visible ones
+    # naidxok:
+    # comp.name: a format specification for how to derive the component name from the dates
+    # env.name:  where to store new components unless otherwise specified
+    structure(list(dim=d, dimnames=dn, along=along, info=info, along.idx=along.idx,
+                   dimorder=dimorder, naidxok=naidxok, env.name=env.name, comp.name=comp.name),
               class='varray')
 }
 
+fixGlobalEnvName <- function(name) {
+    if (name=='R_GlobalEnv') '.GlobalEnv'
+    else if (name=='') stop('cannot use an unnamed environment')
+    else name
+}
+
 as.array.varray <- function(x, ...) {
-    y <- abind(along=x$along, conform(lapply(x$info,
+    rdimorder <- order(x$dimorder)
+    alongd <- rdimorder[x$along]
+    y <- abind(along=alongd, conform(lapply(x$info,
                function(comp) {
                    if (!is.null(comp$value))
                        comp$value
@@ -109,7 +135,7 @@ as.array.varray <- function(x, ...) {
                    else
                        get(comp$name, envir=as.environment(comp$env.name))
                }),
-               along=seq(len=length(x$dim))[-x$along]))
+               along=seq(len=length(x$dim))[-alongd]))
     if (!all(x$dimorder == seq(length(x$dim))))
         y <- aperm(y, order(x$dimorder))
     y
@@ -200,6 +226,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
         so <- x$storage.order
     # permutation on the stored data to get back to user view
     ap <- order(so)
+    alongd <- ap[x$along]
     # adim and adimnames are the dim and dimnames in the storage order
     ad <- d[so]
     adn <- dn[so]
@@ -260,12 +287,12 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
         }
         # Now we have all numeric indices
         # Names of subidx are idx's of submatrix, and values are the indices we want
-        subidx <- tapply(seq(along=ai[[x$along]]),
-                         factor(x$along.idx[ai[[x$along]]], levels=seq(along=x$info)),
+        subidx <- tapply(seq(along=ai[[alongd]]),
+                         factor(x$along.idx[ai[[alongd]]], levels=seq(along=x$info)),
                          FUN=c, simplify=FALSE)
         a <- lapply(which(sapply(subidx, length)>0), function(i) {
             # i is the index of the submatrix we need some data from
-            ii <- replace(ai, x$along, list(ai[[x$along]][subidx[[i]]]))
+            ii <- replace(ai, alongd, list(ai[[alongd]][subidx[[i]]]))
             # map to indices for this submatrix
             jj <- lapply(seq(len=length(x$dim)), function(j)
                 return(x$info[[i]]$map[[j]][ii[[j]]]))
@@ -311,36 +338,30 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             y
         })
         if (length(a) > 1) {
-            a <- abind(along=x$along, a)
+            a <- abind(along=alongd, a)
             # are subchunks out-of-order?
             # get numeric indices of the along-dim as they appear in a
             b <- unlist(lapply(which(sapply(subidx, length)>0), function(i)
-                ai[[x$along]][subidx[[i]]]), use.names=FALSE)
-            # if there are NA's in ai[[x$along]], it's length will not equal b's
-            if (any(is.na(ai[[x$along]])) != (length(b)!=length(ai[[x$along]])))
-                stop("internal indexing inconsistency: expecting NA's in ai[[x$along]] iff length(b)!=length(ai[[x$along]])")
-            if (length(b)!=length(ai[[x$along]]) || !all(b==ai[[x$along]]))
-                a <- asub(a, match(ai[[x$along]], b), x$along)
+                ai[[alongd]][subidx[[i]]]), use.names=FALSE)
+            # if there are NA's in ai[[alongd]], it's length will not equal b's
+            if (any(is.na(ai[[alongd]])) != (length(b)!=length(ai[[alongd]])))
+                stop("internal indexing inconsistency: expecting NA's in ai[[alongd]] iff length(b)!=length(ai[[alongd]])")
+            if (length(b)!=length(ai[[alongd]]) || !all(b==ai[[alongd]]))
+                a <- asub(a, match(ai[[alongd]], b), alongd)
         } else if (length(a) == 1) {
             a <- a[[1]]
-            if (any(is.na(ai[[x$along]]))) {
+            if (any(is.na(ai[[alongd]]))) {
                 i <- which(sapply(subidx, length)>0)
                 if (length(i)!=1)
                     stop("internal indexing inconsistency: expecting only one non-null subidx")
-                b <- ai[[x$along]][subidx[[i]]]
-                a <- asub(a, match(ai[[x$along]], b), x$along)
+                b <- ai[[alongd]][subidx[[i]]]
+                a <- asub(a, match(ai[[alongd]], b), alongd)
             }
         } else {
             a <- array(numeric(0), dim=sapply(ai, length))
         }
         if (!is.null(dn))
             dimnames(a) <- lapply(seq(len=length(d)), function(i) dn[[i]][ai[[i]]])
-        if (!identical(drop, FALSE)) {
-            if (identical(drop, TRUE))
-                drop <- which(sapply(ai, length)==1)
-            if (length(drop))
-                a <- adrop(a, drop=drop)
-        }
     } else if (Nidxs==1 && !missing(..1)) {
         # matrix or vector indexing
         if (!is.matrix(..1) && (is.logical(..1) || is.numeric(..1))) {
@@ -390,8 +411,8 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             storage.mode(mi) <- "integer"
         if (is.true(any(mi < 1 | (mi - matrix(ad, nrow=nrow(mi), ncol=ncol(mi), byrow=TRUE)) > 0)))
             stop("matrix indices out of range")
-        subidx <- tapply(seq(along=mi[,x$along]),
-                         factor(x$along.idx[mi[,x$along]], levels=seq(along=x$info)),
+        subidx <- tapply(seq(along=mi[,alongd]),
+                         factor(alongd.idx[mi[,alongd]], levels=seq(along=x$info)),
                          FUN=c, simplify=FALSE)
         a <- lapply(which(sapply(subidx, length)>0), function(i) {
             # i is the index of the submatrix we need some data from
@@ -417,11 +438,11 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             # are subchunks out-of-order?
             # get numeric indices of the along-dim as they appear in 'a'
             b <- unlist(lapply(which(sapply(subidx, length)>0), function(i)
-                mi[subidx[[i]],x$along,drop=FALSE]), use.names=FALSE)
-            # if there are NA's in mi[,x$along], it's length will not equal b's
-            if (any(is.na(mi[,x$along])) != (length(b)!=nrow(mi)))
-                stop("internal indexing inconsistency: expecting NA's in mi[,x$along] iff length(b)!=nrow(mi)")
-            if (length(b)!=length(mi[,x$along]) || !all(b==mi[,x$along])) {
+                mi[subidx[[i]],alongd,drop=FALSE]), use.names=FALSE)
+            # if there are NA's in mi[,alongd], it's length will not equal b's
+            if (any(is.na(mi[,alongd])) != (length(b)!=nrow(mi)))
+                stop("internal indexing inconsistency: expecting NA's in mi[,alongd] iff length(b)!=nrow(mi)")
+            if (length(b)!=length(mi[,alongd]) || !all(b==mi[,alongd])) {
                 # have to reconstruct the full numerical vector index
                 if (is.null(vi)) {
                     vi <- mi[,1]
@@ -432,11 +453,11 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
                 a <- a[match(vi, ai)]
             }
         } else if (length(a) == 1) {
-            if (any(is.na(mi[,x$along]))) {
+            if (any(is.na(mi[,alongd]))) {
                 i <- which(sapply(subidx, length)>0)
                 if (length(i)!=1)
                     stop("internal indexing inconsistency: expecting only one non-null subidx")
-                a <- replace(rep(NA, nrow(mi)), which(!is.na(mi[,x$along])), a[[1]])
+                a <- replace(rep(NA, nrow(mi)), which(!is.na(mi[,alongd])), a[[1]])
             } else {
                 a <- a[[1]]
             }
@@ -450,9 +471,14 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
         stop("need ", length(d), " or 1 (matrix or vector) index arguments")
     }
     if (!all(x$dimorder == seq(length(x$dim))))
-        return(aperm(a, order(x$dimorder)))
-    else
-        return(a)
+        a <- aperm(a, order(x$dimorder))
+    if (!identical(drop, FALSE)) {
+        if (identical(drop, TRUE))
+            drop <- which(sapply(ai, length)==1)
+        if (length(drop))
+            a <- adrop(a, drop=drop)
+    }
+    a
 }
 
 is.true <- function(x) (x & !is.na(x))
