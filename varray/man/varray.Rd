@@ -74,6 +74,11 @@ varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL,
   Note that this makes it currently impossible for a \code{varray} to
   refer to objects that reside in an unnamed environment or one not on
   the search list of environments.
+
+  All the data associated with a single element of the binding dimension
+  (the \code{along} dimension) must be stored in a single one of the
+  component objects.
+
 }
 \value{
   \code{varray()} returns an S3 object of class \code{varray}.
