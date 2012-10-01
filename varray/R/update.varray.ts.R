@@ -115,8 +115,6 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
                 this.datar <- aperm(this.data, rdimorder)
             }
             j <- match(this.new.scn, all.scn.u)
-            if (!isTRUE(all.equal(dimorder, seq(len=length(dd)))))
-                stop('have to permute component')
             va$info[[j]]$name <- this.new.scn
             va$info[[j]]$dim <- dim(this.datar)
             va$info[[j]]$dimnames <- dimnames(this.datar)
@@ -159,8 +157,6 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
             need.expand <- mapply(va$info[[this.i]]$dimnames, this.datar.dn, FUN=function(old, new) !all(is.element(new, old)))
             env <- as.environment(va$info[[this.i]]$env.name)
             comp.data <- get(va$info[[this.i]]$name, envir=env, inherits=FALSE)
-            if (!isTRUE(all.equal(dimorder, seq(len=length(dd)))))
-                stop('have to permute component')
             if (any(need.expand)) {
                 comp.dn.changed[this.i] <- TRUE
                 new.dn <- mapply(va$info[[this.i]]$dimnames, this.datar.dn, FUN=function(old, new) union(old, new))

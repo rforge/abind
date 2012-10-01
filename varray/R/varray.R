@@ -360,8 +360,16 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
         } else {
             a <- array(numeric(0), dim=sapply(ai, length))
         }
+        if (!all(x$dimorder == seq(length(x$dim))))
+            a <- aperm(a, order(x$dimorder))
         if (!is.null(dn))
-            dimnames(a) <- lapply(seq(len=length(d)), function(i) dn[[i]][ai[[i]]])
+            dimnames(a) <- lapply(seq(len=length(d)), function(i) dn[[i]][ai[ap][[i]]])
+        if (!identical(drop, FALSE)) {
+            if (identical(drop, TRUE))
+                drop <- which(sapply(ai, length)==1)
+            if (length(drop))
+                a <- adrop(a, drop=drop)
+        }
     } else if (Nidxs==1 && !missing(..1)) {
         # matrix or vector indexing
         if (!is.matrix(..1) && (is.logical(..1) || is.numeric(..1))) {
@@ -412,7 +420,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
         if (is.true(any(mi < 1 | (mi - matrix(ad, nrow=nrow(mi), ncol=ncol(mi), byrow=TRUE)) > 0)))
             stop("matrix indices out of range")
         subidx <- tapply(seq(along=mi[,alongd]),
-                         factor(alongd.idx[mi[,alongd]], levels=seq(along=x$info)),
+                         factor(x$along.idx[mi[,alongd]], levels=seq(along=x$info)),
                          FUN=c, simplify=FALSE)
         a <- lapply(which(sapply(subidx, length)>0), function(i) {
             # i is the index of the submatrix we need some data from
@@ -462,21 +470,13 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
                 a <- a[[1]]
             }
         } else {
-            a <- array(numeric(0), dim=sapply(ai, length))
+            a <- x$info[[1]]$sample[0]
         }
     } else if (Nidxs<=0) {
         # get both [] and [,drop=F]
         stop("empty subscripts not supported for 'varray' objects")
     } else {
         stop("need ", length(d), " or 1 (matrix or vector) index arguments")
-    }
-    if (!all(x$dimorder == seq(length(x$dim))))
-        a <- aperm(a, order(x$dimorder))
-    if (!identical(drop, FALSE)) {
-        if (identical(drop, TRUE))
-            drop <- which(sapply(ai, length)==1)
-        if (length(drop))
-            a <- adrop(a, drop=drop)
     }
     a
 }
