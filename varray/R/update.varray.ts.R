@@ -81,12 +81,13 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
     ex.scn <- as.character(sapply(va$info, '[[', 'name'))
     # If we need any new slices, create and/or expand existing subcomponents
     new.slices <- which(is.na(ex.ai))
+    expand.comp.i <- integer(0)
     if (length(new.slices) || is.null(va)) {
         # new.slices is integer: the slices in 'data' that need new subcomponents
-        new.scn <- format(dateParse(ddn[[along]][new.slices]), format=comp.name)
-        all.scn.u <- unique(c(ex.scn, new.scn))
-        new.scn.u <- setdiff(unique(new.scn), ex.scn)
-        new.slices.sci <- match(new.scn, all.scn.u)
+        new.slices.scn <- format(dateParse(ddn[[along]][new.slices]), format=comp.name)
+        all.scn.u <- unique(c(ex.scn, new.slices.scn))
+        new.scn.u <- setdiff(unique(new.slices.scn), ex.scn)
+        expand.comp.i <- match(intersect(unique(new.slices.scn), ex.scn), ex.scn)
         comp.dn.changed <- rep(FALSE, length(all.scn.u))
         if (is.null(va)) {
             va <- structure(list(dim=NULL, dimnames=NULL, along=along,
@@ -100,7 +101,7 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
         }
         # if any new sub-components are needed, create them
         for (this.new.scn in new.scn.u) {
-            this.data <- asub(data, new.slices[new.scn==this.new.scn], dims=along, drop=FALSE)
+            this.data <- asub(data, new.slices[new.slices.scn==this.new.scn], dims=along, drop=FALSE)
             this.data.dn <- dimnames(this.data)
             # find dimnames that don't have all NA values
             for (i in seq(length(dim(data))[-along]))
@@ -123,21 +124,21 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
             # will fix 'map' at the end
             assign(this.new.scn, envir=envir, value=this.datar)
         }
-        # if we need to add slices to any existing sub-components, do that
+        # if we need to add slices to any existing sub-components, we do that below
     } else {
         comp.dn.changed <- rep(FALSE, length(va$info))
-        new.scn <- character(0)
+        new.slices.scn <- character(0)
     }
     # data.ii is the slices of 'data' that are to be found in existing components of 'va'
     data.ii <- which(!is.na(ex.ai))
-    if (length(data.ii)) {
+    if (length(data.ii) || length(expand.comp.i)) {
         # work out which existing components of 'va' we need to work with
         exist.comp.i <- va$along.idx[ex.ai[data.ii]]
-        for (this.i in unique(exist.comp.i)) {
+        for (this.i in sort(unique(c(exist.comp.i, expand.comp.i)))) {
             # working with component 'this.i' of 'va', and data slices 'data.i'
             data.i <- data.ii[this.i == exist.comp.i]
             # add in the indices that are new in the 'along' dimension but belong to this component
-            data.i <- union(data.i, which(is.na(ex.ai))[new.scn == va$info[[this.i]]$name])
+            data.i <- union(data.i, which(is.na(ex.ai))[new.slices.scn == va$info[[this.i]]$name])
             this.data <- asub(data, data.i, dims=along, drop=FALSE)
             this.data.dn <- dimnames(this.data)
             # find dimnames that don't have all NA values
