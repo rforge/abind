@@ -10,8 +10,9 @@
   not store their actual data.
 }
 \usage{
-varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL,
-       naidxok = NA, dimnames = NULL)
+varray(\dots, along = 1, dimorder = NULL, env.name = FALSE, envir = NULL,
+       naidxok = NA, dimnames = NULL, comp.name = NULL,
+       keep.ordered = TRUE, umode = NULL)
 \method{as.array}{varray}(x, \dots)
 }
 \arguments{
@@ -57,6 +58,16 @@ varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL,
 \item{x}{
   A \code{varray} object.
 }
+\item{comp.name}{
+  A character string that records how to construct the name of a
+  component.  Used in \code{update.ts.varray()}.
+}
+\item{keep.ordered}{
+  Should dimnames be kept ordered when new elements are added?
+}
+\item{umode}{
+  The storage mode of the component objects.
+}
 }
 \details{
   Component arrays are stored by reference (by name.)  At the time of subset
@@ -92,7 +103,6 @@ varray(\dots, along = 1, dimorder = NULL, env.name = TRUE, envir = NULL,
   \code{\link{[.varray}}
   \code{\link{dim.varray}}
   \code{\link{dimnames.varray}}
-  \code{\link{length.varray}}
   \code{\link{mode.varray}}
   \code{\link{storage.mode.varray}}
 }

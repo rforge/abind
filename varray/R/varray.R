@@ -1,9 +1,13 @@
-varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidxok=NA, dimnames=NULL, comp.name=NULL) {
+varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naidxok=NA, dimnames=NULL, comp.name=NULL, keep.ordered=TRUE, umode=NULL) {
     # Can call like this:
     #    varray(a, b, c)
     # or varray('a', 'b', 'c')
     # or varray(c('a', 'b', 'c'))
     # Still need to figure out if need to record where to find the objects (i.e., which environments)
+    # env.name is tricky, because env can be named different things in different sessions
+    # might be better to use a db.name, which is like a marker stored in a particular variable in a db.
+    # This could identify an attached DB regardless of its file location or attached environment name.
+    # We might want to have track.attach() warn if we attach two DBs with the same name.
     dotv <- list(...)
     if (is.character(envir))
         envir <- as.environment(envir)
@@ -96,24 +100,29 @@ varray <- function(..., along=1, dimorder=NULL, env.name=TRUE, envir=NULL, naidx
     # Components of a varray object (everything at the top level is stored in terms of user dimensions)
     # dim:       the combined dim
     # dimnames:  the combined dimnames
-    # along:     the binding dimension
+    # along:     the binding dimension (in terms of user dimensions)
     # info:      a list of lists, one component per subcomponent, containing:
     #       NOTE: everything inside info is stored in terms of the native dimorder, not the user dimorder
     #       name:     name of object
     #       dim:      cached dim of object (in terms of the object, before applying dimorder)
     #       dimnames: cached dimnames of the object (in terms of the object, before applying dimorder)
-    #       env.name: name of the environment to find the object in
-    #       sample:   a sample element
-    #       naidxok:  logical, indicating if NA indices are permitted (e.g., FALSE for matrix, TRUE for vector and data.frame)
+    #       env.name: name of the environment to find the object in (NULL if not used)
+    #       sample:   a sample element of the type returned by [.varray
+    #       naidxok:  logical, indicating if NA indices are ok for [ (e.g., FALSE for matrix, TRUE for vector and data.frame)
     #       map:      a list of integer vectors showing how top-level dimnames map to this subcomponent.
     #                 has NA entries where the top-level dimnames are not present in this subcomponent.
-    # along.idx: a vector containing the subindex for each element of the binding dimension
-    # dimorder:   how to permute the underlying dimensions to arrive at the user-visible ones
-    # naidxok:
-    # comp.name: a format specification for how to derive the component name from the dates
-    # env.name:  where to store new components unless otherwise specified
+    # along.idx:    a vector containing the subindex for each element of the binding dimension
+    # dimorder:     how to permute the underlying dimensions to arrive at the user-visible ones
+    # naidxok:      default for info[[i]]$naidxok
+    # env.name:     where to store new components unless otherwise specified (can be NULL)
+    # comp.name:    a format specification for how to derive the component name from the dates
+    # keep.ordered: logical; if TRUE, always keep the user-visible dimension ordered
+    # umode:        native storage mode of the returned object (e.g., 'numeric', 'integer', 'raw', 'character')
+    # creator.args: args to supply to creator, e.g., for 'ff' list(vmode='single')
+    # expander.args:
     structure(list(dim=d, dimnames=dn, along=along, info=info, along.idx=along.idx,
-                   dimorder=dimorder, naidxok=naidxok, env.name=env.name, comp.name=comp.name),
+                   dimorder=dimorder, naidxok=naidxok, env.name=env.name, comp.name=comp.name,
+                   keep.ordered=keep.ordered, umode=umode),
               class='varray')
 }
 
@@ -126,19 +135,26 @@ fixGlobalEnvName <- function(name) {
 as.array.varray <- function(x, ...) {
     rdimorder <- order(x$dimorder)
     alongd <- rdimorder[x$along]
-    y <- abind(along=alongd, conform(lapply(x$info,
+    y <- abind(along=alongd, lapply(x$info,
                function(comp) {
                    if (!is.null(comp$value))
-                       comp$value
+                       z <- comp$value
                    else if (is.null(comp$env.name))
-                       get(comp$name, pos=1)
+                       z <- get(comp$name, pos=1)
                    else
-                       get(comp$name, envir=as.environment(comp$env.name))
-               }),
-               along=seq(len=length(x$dim))[-alongd]))
+                       z <- get(comp$name, envir=as.environment(comp$env.name))
+                   conform(z, x$dimnames[rdimorder], along=seq(len=length(x$dim))[-alongd])
+               }))
     if (!all(x$dimorder == seq(length(x$dim))))
         y <- aperm(y, order(x$dimorder))
     y
+}
+
+as.matrix.varray <- function(x, ...) {
+    if (length(x$dim)==2)
+        as.array.varray(x, ...)
+    else
+        as.matrix(as.array.varray(x, ...))
 }
 
 print.varray <- function(x, ...) {
@@ -207,7 +223,7 @@ print.varray <- function(x, ...) {
     }
 }
 
-length.varray <- function(x) prod(x$dim)
+# length.varray <- function(x) prod(x$dim) # messes up str() if we define length, and length(x) != prod(dim(x)) for data.frame
 dim.varray <- function(x) x$dim
 dimnames.varray <- function(x) x$dimnames
 
@@ -219,7 +235,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
     d <- x$dim
     dn <- x$dimnames
     naidxok <- x$naidxok
-    if (is.null(naidxok))
+    if (is.null(naidxok) || is.na(naidxok))
         naidxok <- FALSE
     so <- x$dimorder
     if (is.null(so))
@@ -432,7 +448,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             if (!is.null(x$info[[i]]$value)) {
                 y <- x$info[[i]]$value[jj]
             } else {
-                if (is.null(x$info[[i]]$name))
+                if (is.null(x$info[[i]]$env.name))
                     yy <- get(x$info[[i]]$name, pos=1)
                 else
                     yy <- get(x$info[[i]]$name, envir=as.environment(x$info[[i]]$env.name))
@@ -490,3 +506,33 @@ is.true <- function(x) (x & !is.na(x))
 "storage.mode<-.varray" <- function(x, value) stop('storage.mode for varray is read-only')
 "[<-.varray" <- function(x, i, j, ..., value) stop('cannot replace parts a varray (varray is read-only -- you must work with the sub-arrays)')
 
+rm.varray <- function(x, list=NULL) {
+    if (is.null(list)) {
+        x.name <- substitute(x)
+        if (!is.name(x.name))
+            stop('must supply the name of a varray object')
+        list <- as.character(x.name)
+    }
+    for (x.name in list) {
+        x <- get(x.name)
+        if (!inherits(x, 'varray'))
+            stop('must supply the name of a varray object')
+        remove(list=x.name, inherits=TRUE)
+        for (i in seq(along=x$info)) {
+            if (is.null(x$info[[i]]$value)) {
+                if (!is.null(x$info[[i]]$env.name)) {
+                    env <- as.environment(x$info[[i]]$env.name)
+                    if (exists(x$info[[i]]$name, envir=env))
+                        remove(list=x$info[[i]]$name, envir=env, inherits=FALSE)
+                    else
+                        warning('component ', x$info[[i]]$name, ' not found in env ', x$info[[i]]$env.name)
+                } else {
+                    if (exists(x$info[[i]]$name, inherits=TRUE))
+                        remove(list=x$info[[i]]$name, inherits=TRUE)
+                    else
+                        warning('component ', x$info[[i]]$name, ' not found')
+                }
+            }
+        }
+    }
+}

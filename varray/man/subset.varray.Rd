@@ -3,7 +3,6 @@
 \alias{[.varray}
 \alias{dim.varray}
 \alias{dimnames.varray}
-\alias{length.varray}
 \alias{mode.varray}
 \alias{storage.mode.varray}
 \alias{[<-.varray}
@@ -25,7 +24,6 @@
 \method{[}{varray}(x, ..., drop=TRUE)
 \method{dim}{varray}(x)
 \method{dimnames}{varray}(x)
-\method{length}{varray}(x)
 \method{mode}{varray}(x)
 \method{storage.mode}{varray}(x)
 }

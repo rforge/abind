@@ -19,16 +19,16 @@ d NA 8 11 14
 e NA 9 12 15
 > x
 5 x 4 virtual matrix with dimnames:
-   [1] a, b, ..., e
-   [2] w, x, y, z
+   [1] a, b, ..., e 
+   [2] w, x, y, z 
 with 2 sub-arrays:
-sub-array 1: 'a' (in env '.GlobalEnv') 2 x 3 matrix with dimnames:
-   [1] a, b
-   [2] w, x, y
-sub-array 2: 'b' (in env '.GlobalEnv') 3 x 3 matrix with dimnames:
-   [1] c, d, e
-   [2] x, y, z
->
+sub-array 1: 'a' (found in env '.GlobalEnv') 2 x 3 matrix with dimnames:
+   [1] a, b 
+   [2] w, x, y 
+sub-array 2: 'b' (found in env '.GlobalEnv') 3 x 3 matrix with dimnames:
+   [1] c, d, e 
+   [2] x, y, z 
+> 
 > x[c('a'),c('x','z'),drop=F]
   x  z
 a 3 NA
@@ -85,7 +85,7 @@ d
      y z
 > x[c(),c(),drop=F]
 <0 x 0 matrix>
->
+> 
 > x[c('a','c',NA),c('y','z'),drop=F]
       y  z
 a     5 NA
@@ -106,7 +106,7 @@ c    10 13
 <NA>   NA NA NA
 a      NA  5 NA
 c      NA 10 13
->
+> 
 > x[c(NA,'a'),c(NA,'y','z'),drop=F]
      <NA>  y  z
 <NA>   NA NA NA
@@ -115,7 +115,7 @@ a      NA  5 NA
      <NA>  y  z
 a      NA  5 NA
 <NA>   NA NA NA
->
+> 
 > x[cbind(c(2,4,3), 2)]
 [1] 4 8 7
 > x[cbind(c(4,2,3), 2)]
@@ -134,16 +134,16 @@ a      NA  5 NA
 [1]  1 NA  3  9  5 12 NA 15
 > x[c(T,F,F,F,T)]
 [1]  1 NA  3  9  5 12 NA 15
->
+> 
 > # Test with dimorder
 > at <- t(a)
 > bt <- t(b)
 > xt <- varray(at, bt, dimorder=2:1)
 > sapply(names(x), function(i) isTRUE(all.equal(x[[i]], xt[[i]])))
-      dim  dimnames     along      info along.idx  dimorder   naidxok  env.name
-     TRUE      TRUE      TRUE     FALSE      TRUE     FALSE      TRUE      TRUE
-comp.name
-     TRUE
+         dim     dimnames        along         info    along.idx     dimorder 
+        TRUE         TRUE         TRUE        FALSE         TRUE        FALSE 
+     naidxok     env.name    comp.name keep.ordered        umode 
+        TRUE         TRUE         TRUE         TRUE         TRUE 
 > unclass(x)[-4]
 $dim
 [1] 5 4
@@ -169,9 +169,15 @@ $naidxok
 [1] FALSE
 
 $env.name
-[1] TRUE
+[1] FALSE
 
 $comp.name
+NULL
+
+$keep.ordered
+[1] TRUE
+
+$umode
 NULL
 
 > as.array(xt)
@@ -196,4 +202,5 @@ d NA 8 14
    w x  z
 b  2 4 NA
 d NA 8 14
->
+> 
+> 

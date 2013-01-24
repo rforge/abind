@@ -1,6 +1,11 @@
-update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', dates.by='bizdays', holidays='NYSEC',
+update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%Y', dates.by='bizdays', holidays='NYSEC',
                              vmode='single', along=va$along, dimorder=va$dimorder,
-                             env.name=va$env.name, envir=NULL, naidxok=va$naidxok, character.only=FALSE) {
+                             env.name=va$env.name, envir=NULL, naidxok=va$naidxok,
+                             keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE) {
+    non.null <- function(x, y) if (!is.null(x)) x else y
+    # TODO:
+    #   Force use of umode
+    #
     # Update a varray that stores time series matrix data.
     # Labels on the binding 'along' dimension are dates, stored in order
     # Might need to create new component arrays in the varray.
@@ -16,18 +21,12 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
     # them.
 
     # get 'va' as NULL or the varray
-    if (is.character(substitute(va)) || character.only) {
-        va.name <- va
-        if (!is.character(va.name))
-            stop('va must be supplied as character data when character.only=TRUE')
-        if (exists(va.name)) {
-            va <- get(va.name)
-        } else {
-            va <- NULL
-        }
+    if (!is.character(va.name))
+        stop('va.name must be supplied as character data')
+    if (exists(va.name)) {
+        va <- get(va.name)
     } else {
-        va.name <- '**unknown**'
-        force(va)
+        va <- NULL
     }
     # and 'adn' and 'ad'; the dimnames & dims of 'va'
     if (!is.null(va)) {
@@ -45,7 +44,7 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
         ad <- rep(0, length(dim(data)))
     }
     if (along < 1 || along > length(non.null(va$info[[1]]$dim, dim(data))))
-        stop('along must be in 1..', length(non.null(va$info[[1]]$dim), dim(data)))
+        stop('along must be in 1..', length(non.null(va$info[[1]]$dim, dim(data))))
 
     if (is.null(comp.name))
         comp.name <- paste(va.name, dateblock, sep='.')
@@ -55,7 +54,6 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
         env.name <- fixGlobalEnvName(environmentName(envir))
     } else if (is.null(env.name)) {
         envir <- .GlobalEnv
-        env.name <- fixGlobalEnvName(environmentName(envir))
     } else {
         envir <- as.environment(env.name)
     }
@@ -63,6 +61,7 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
     # 'ddn' and 'dd' are dimnames and dims of data (the new data)
     ddn <- dimnames(data)
     dd <- dim(data)
+    sample <- asub(data, rep(list(1), length(dd)))
     if (!is.null(va) && length(va$info[[1]]$dim) != length(dd))
         stop('component 1 has different dimensionality than data: ',
                      length(va$info[[1]]$dim), ' vs ', length(dd))
@@ -90,14 +89,16 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
         expand.comp.i <- match(intersect(unique(new.slices.scn), ex.scn), ex.scn)
         comp.dn.changed <- rep(FALSE, length(all.scn.u))
         if (is.null(va)) {
+            if (is.null(keep.ordered)) keep.ordered <- TRUE
             va <- structure(list(dim=NULL, dimnames=NULL, along=along,
                                  info=rep(list(list(name=NULL, dim=NULL, dimnames=NULL, env.name=NULL,
-                                          sample=NULL, naidxok=NULL, map=NULL)), length(all.scn.u)),
-                                 along.idx=NULL, dimorder=dimorder, naidxok=naidxok,
-                                 comp.name=comp.name, env.name=env.name), class='varray')
+                                          sample=sample, naidxok=NULL, map=NULL)), length(all.scn.u)),
+                                 along.idx=NULL, dimorder=dimorder, naidxok=naidxok, env.name=env.name,
+                                 comp.name=comp.name, keep.ordered=keep.ordered, umode=storage.mode(sample)),
+                            class='varray')
         } else {
             va$info <- c(va$info, rep(list(list(name=NULL, dim=NULL, dimnames=NULL, env.name=NULL,
-                                                sample=NULL, naidxok=NULL, map=NULL)), length(new.scn.u)))
+                                                sample=sample, naidxok=NULL, map=NULL)), length(new.scn.u)))
         }
         # if any new sub-components are needed, create them
         for (this.new.scn in new.scn.u) {
@@ -129,6 +130,7 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
         comp.dn.changed <- rep(FALSE, length(va$info))
         new.slices.scn <- character(0)
     }
+    if (is.null(keep.ordered)) keep.ordered <- TRUE
     # data.ii is the slices of 'data' that are to be found in existing components of 'va'
     data.ii <- which(!is.na(ex.ai))
     if (length(data.ii) || length(expand.comp.i)) {
@@ -156,11 +158,16 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
                 this.datar.dn <- this.data.dn[rdimorder]
             }
             need.expand <- mapply(va$info[[this.i]]$dimnames, this.datar.dn, FUN=function(old, new) !all(is.element(new, old)))
-            env <- as.environment(va$info[[this.i]]$env.name)
+            env <- as.environment(non.null(va$info[[this.i]]$env.name, non.null(va$env.name, 1)))
             comp.data <- get(va$info[[this.i]]$name, envir=env, inherits=FALSE)
             if (any(need.expand)) {
                 comp.dn.changed[this.i] <- TRUE
-                new.dn <- mapply(va$info[[this.i]]$dimnames, this.datar.dn, FUN=function(old, new) union(old, new))
+                new.dn <- lapply(seq(len=length(va$info[[this.i]]$dim)), function(i) {
+                    dni <- union(va$info[[this.i]]$dimnames[[i]], this.datar.dn[[i]])
+                    if (keep.ordered)
+                        dni <- sort(dni, na.last=TRUE)
+                    return(dni)
+                })
                 comp.data <- conform(comp.data, new.dn)
                 va$info[[this.i]]$dimnames <- new.dn
                 va$info[[this.i]]$dim <- sapply(new.dn, length)
@@ -188,6 +195,8 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
     }
     rdimorder <- order(dimorder)
     alongd <- rdimorder[along]
+    if (is.null(va$keep.ordered) || va$keep.ordered)
+        dn[-along] <- lapply(dn[-along], sort, na.last=TRUE)
     # fix 'map' in all info components
     # eventualy, record which components were changed, and only update those
     for (i in seq(to=1, from=length(va$info))) {
@@ -196,5 +205,6 @@ update.varray.ts <- function(va, data, comp.name=va$comp.name, dateblock='%Y', d
     }
     va$dim <- d
     va$dimnames <- dn
-    va
+    assign(va.name, value=va, envir=envir)
+    invisible(va)
 }
