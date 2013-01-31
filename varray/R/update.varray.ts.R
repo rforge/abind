@@ -181,22 +181,29 @@ update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%
     dn <- lapply(seq(len=length(va$info[[1]]$dim)), function(i)
                  unique(unlist(lapply(va$info, function(x) x$dimnames[[i]]))))
     d <- sapply(dn, length)
-    va$along.idx <- integer(d[along])
-    naidxok <- all(sapply(va$info, '[[', 'naidxok'))
     if (is.null(dimorder))
         dimorder <- seq(length(d))
     else
         if (!identical(sort(as.numeric(dimorder)), as.numeric(seq(length(d)))))
-            stop('dimorder must be 1:length(d) in some permutation')
+            stop('dimorder must be some permutation of 1:length(d)')
+    rdimorder <- order(dimorder)
+    alongd <- rdimorder[along]
+    if (keep.ordered) {
+        # reorder the components based on the first element of their 'along' dimname
+        el1 <- sapply(va$info, function(info) info$dimnames[[alongd]][1])
+        el1ord <- order(el1, na.last=TRUE)
+        if (!all(diff(el1ord)==1))
+            va$info <- va$info[el1ord]
+    }
+    va$along.idx <- integer(d[alongd])
+    naidxok <- all(sapply(va$info, '[[', 'naidxok'))
     # convert d,dn to user dimorder
     if (!all(dimorder == seq(length(d)))) {
         d <- d[dimorder]
         dn <- dn[dimorder]
     }
-    rdimorder <- order(dimorder)
-    alongd <- rdimorder[along]
     if (is.null(va$keep.ordered) || va$keep.ordered)
-        dn[-along] <- lapply(dn[-along], sort, na.last=TRUE)
+        dn <- lapply(dn, sort, na.last=TRUE)
     # fix 'map' in all info components
     # eventualy, record which components were changed, and only update those
     for (i in seq(to=1, from=length(va$info))) {
