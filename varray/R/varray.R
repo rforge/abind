@@ -147,6 +147,8 @@ as.array.varray <- function(x, ...) {
                }))
     if (!all(x$dimorder == seq(length(x$dim))))
         y <- aperm(y, order(x$dimorder))
+    if (!isTRUE(all.equal(x$dimnames[[x$along]], dimnames(y)[[x$along]])))
+        y <- conform(y, x$dimnames, along=x$along)
     y
 }
 
