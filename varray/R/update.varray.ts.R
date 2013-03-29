@@ -7,6 +7,7 @@ update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%
     #   Force use of umode
     #
     # Update a varray that stores time series matrix data.
+    # 'data' is the new data
     # Labels on the binding 'along' dimension are dates, stored in order
     # Might need to create new component arrays in the varray.
     # Might need to create new columns in the varray -- though first
@@ -61,7 +62,6 @@ update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%
     # 'ddn' and 'dd' are dimnames and dims of data (the new data)
     ddn <- dimnames(data)
     dd <- dim(data)
-    sample <- asub(data, rep(list(1), length(dd)))
     if (!is.null(va) && length(va$info[[1]]$dim) != length(dd))
         stop('component 1 has different dimensionality than data: ',
                      length(va$info[[1]]$dim), ' vs ', length(dd))
@@ -88,6 +88,7 @@ update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%
         new.scn.u <- setdiff(unique(new.slices.scn), ex.scn)
         expand.comp.i <- match(intersect(unique(new.slices.scn), ex.scn), ex.scn)
         comp.dn.changed <- rep(FALSE, length(all.scn.u))
+        sample <- asub(data, rep(list(1), length(dd)))
         if (is.null(va)) {
             if (is.null(keep.ordered)) keep.ordered <- TRUE
             va <- structure(list(dim=NULL, dimnames=NULL, along=along,
