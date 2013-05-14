@@ -57,7 +57,7 @@ conform.default <- function(x, ..., fill=NA, do.all=c("no", "union", "intersect"
         get.dimnames <- function(x) {
             if (is.dimnames(x))
                 x
-            else if (length(dim(x)))
+            else if (length(dim(x))) # instead of is.array(), which doesn't work for virtual arrays
                 non.null(dimnames(x), rep(list(character(0)), length(dim(x))))
             else if (!is.null(names(x)))
                 list(names(x))
@@ -97,12 +97,12 @@ conform.default <- function(x, ..., fill=NA, do.all=c("no", "union", "intersect"
         if (!excess.ok)
             for (i in along)
                 if (any(!is.element(x.d[[i]], y.d[[i]])))
-                    stop("x has some dimension elements not in y, e.g.: ",
+                    stop("x has some dimname[", i, "] elements not in y, e.g.: ",
                          paste(some.examples(x.d[[i]][!is.element(x.d[[i]], y.d[[i]])]), collapse=", "))
         if (!missing.ok)
             for (i in along)
                 if (any(!is.element(y.d[[i]], x.d[[i]])))
-                    stop("x is missing some dimension elements that are in y, e.g.: ",
+                    stop("x is missing some dimname[", i, "] elements that are in y, e.g.: ",
                          paste(some.examples(y.d[[i]][!is.element(y.d[[i]], x.d[[i]])]), collapse=", "))
         for (i in along) {
             if (!identical(x.d[[i]], y.d[[i]])) {
@@ -118,15 +118,19 @@ conform.default <- function(x, ..., fill=NA, do.all=c("no", "union", "intersect"
                 if (!is.na(fill)) {
                     rargs <- args[seq(len=length(x.d))]
                     rargs[[i]] <- which(is.na(rargs[[i]]))
-                    x <- do.call("[<-", c(list(x), rargs, list(value=fill)))
+                    if (length(rargs[[i]]))
+                        x <- do.call("[<-", c(list(x), rargs, list(value=fill)))
                 }
             }
         }
         # see if we need to put back any attributes of x that got lost
-        for (a in intersect(names(attributes(x)), names(x.attr)))
-            x.attr[[a]] <- NULL
-        if (length(x.attr))
-            attributes(x) <- c(attributes(x), x.attr)
+        # no, this doesn't work well -- better to just rely on behavior of [ and cbind
+        if (FALSE) {
+            for (a in intersect(names(attributes(x)), names(x.attr)))
+                x.attr[[a]] <- NULL
+            if (length(x.attr))
+                attributes(x) <- c(attributes(x), x.attr)
+        }
         return(x)
     }
 }
@@ -137,7 +141,6 @@ conform.list <- function(x, ..., fill=NA, do.all=c("no", "union", "intersect"), 
     nDotArgs <- length(match.call(expand.dots=FALSE)$...)
     if (!is.list(x))
         stop("x must be a list")
-    # excess.ok is irrelevant here -- no!
     if (nDotArgs==0) {
         if (do.all=='intersect')
             z.d <- do.call("intersect.dimnames", c(x, list(along=along)))
@@ -168,7 +171,7 @@ conform.data.frame <- function(x, ..., fill=NA, do.all=c("no", "union", "interse
     get.dimnames <- function(x) {
         if (is.dimnames(x))
             x
-        else if (length(dim(x)))
+        else if (length(dim(x))) # instead of is.array(), which doesn't work for virtual arrays
             non.null(dimnames(x), rep(list(character(0)), length(dim(x))))
         else if (!is.null(names(x)))
             list(names(x))
@@ -208,12 +211,12 @@ conform.data.frame <- function(x, ..., fill=NA, do.all=c("no", "union", "interse
     if (!excess.ok)
         for (i in along)
             if (any(!is.element(x.d[[i]], y.d[[i]])))
-                stop("x has some dimension elements not in y, e.g.: ",
+                stop("x has some dimname[", i, "] elements not in y, e.g.: ",
                      paste(some.examples(x.d[[i]][!is.element(x.d[[i]], y.d[[i]])]), collapse=", "))
     if (!missing.ok)
         for (i in along)
             if (any(!is.element(y.d[[i]], x.d[[i]])))
-                stop("x is missing some dimension elements that are in y, e.g.: ",
+                stop("x is missing some dimname[", i, "] elements that are in y, e.g.: ",
                      paste(some.examples(y.d[[i]][!is.element(y.d[[i]], x.d[[i]])]), collapse=", "))
 
     # fix rows
@@ -280,7 +283,7 @@ union.dimnames <- function(..., along=NULL) {
     get.dimnames <- function(x) {
         if (is.dimnames(x))
             x
-        else if (length(dim(x)))
+        else if (length(dim(x))) # instead of is.array(), which doesn't work for virtual arrays
             non.null(dimnames(x), rep(list(character(0)), length(dim(x))))
         else if (!is.null(names(x)))
             list(names(x))
@@ -340,8 +343,8 @@ intersect.dimnames <- function(..., along=NULL) {
     get.dimnames <- function(x) {
         if (is.dimnames(x))
             x
-        else if (is.array(x))
-            dimnames(x)
+        else if (length(dim(x))) # instead of is.array(), which doesn't work for virtual arrays
+            non.null(dimnames(x), rep(list(character(0)), length(dim(x))))
         else if (!is.null(names(x)))
             list(names(x))
         else
