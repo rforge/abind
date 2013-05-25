@@ -365,7 +365,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             if (any(is.na(ai[[alongd]])) != (length(b)!=length(ai[[alongd]])))
                 stop("internal indexing inconsistency: expecting NA's in ai[[alongd]] iff length(b)!=length(ai[[alongd]])")
             if (length(b)!=length(ai[[alongd]]) || !all(b==ai[[alongd]]))
-                a <- asub(a, match(ai[[alongd]], b), alongd)
+                a <- asub(a, match(ai[[alongd]], b), alongd, drop=FALSE)
         } else if (length(a) == 1) {
             a <- a[[1]]
             if (any(is.na(ai[[alongd]]))) {
@@ -373,7 +373,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
                 if (length(i)!=1)
                     stop("internal indexing inconsistency: expecting only one non-null subidx")
                 b <- ai[[alongd]][subidx[[i]]]
-                a <- asub(a, match(ai[[alongd]], b), alongd)
+                a <- asub(a, match(ai[[alongd]], b), alongd, drop=FALSE)
             }
         } else {
             a <- array(numeric(0), dim=sapply(ai, length))
@@ -507,6 +507,10 @@ is.true <- function(x) (x & !is.na(x))
 "mode<-.varray" <- function(x, value) stop('mode for varray is read-only')
 "storage.mode<-.varray" <- function(x, value) stop('storage.mode for varray is read-only')
 "[<-.varray" <- function(x, i, j, ..., value) stop('cannot replace parts a varray (varray is read-only -- you must work with the sub-arrays)')
+
+is.virtual.array.varray <- function(x) TRUE
+is.virtual.array.default <- function(x) FALSE
+is.virtual.array <- function(x) UseMethod('is.virtual.array')
 
 rm.varray <- function(x, list=NULL) {
     if (is.null(list)) {
