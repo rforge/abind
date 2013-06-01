@@ -1,4 +1,4 @@
-export(varray, update.varray.ts, conform, update.matrix, update.Matrix, rm.varray, is.virtual.array)
+export(varray, update.varray.ts, conform, update.matrix, update.Matrix, rm.varray, is.virtual.array, is.virtual.array.varray)
 S3method(print, varray)
 S3method(as.array, varray)
 S3method(as.matrix, varray)
