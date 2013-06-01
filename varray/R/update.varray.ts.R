@@ -53,7 +53,7 @@ update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%
     # get 'envir' and 'env.name'
     if (!is.null(envir)) {
         env.name <- fixGlobalEnvName(environmentName(envir))
-    } else if (is.null(env.name)) {
+    } else if (is.null(env.name) || identical(env.name, FALSE)) {
         envir <- .GlobalEnv
     } else {
         envir <- as.environment(env.name)
