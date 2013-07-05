@@ -489,7 +489,6 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
                 a <- a[[1]]
             }
         } else {
-            a <- x$info[[1]]$sample[0]
             if (nrow(mi)) {
                 if (any(!mi.na))
                     stop('internal error: expecting all mi to be NA')
