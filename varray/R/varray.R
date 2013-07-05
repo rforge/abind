@@ -437,8 +437,9 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             storage.mode(mi) <- "integer"
         if (is.true(any(mi < 1 | (mi - matrix(ad, nrow=nrow(mi), ncol=ncol(mi), byrow=TRUE)) > 0)))
             stop("matrix indices out of range")
-        subidx <- tapply(seq(along=mi[,alongd]),
-                         factor(x$along.idx[mi[,alongd]], levels=seq(along=x$info)),
+        mi.na <- rowSums(is.na(mi))>0
+        subidx <- tapply(seq(along=mi[,alongd])[!mi.na],
+                         factor(x$along.idx[mi[!mi.na,alongd]], levels=seq(along=x$info)),
                          FUN=c, simplify=FALSE)
         a <- lapply(which(sapply(subidx, length)>0), function(i) {
             # i is the index of the submatrix we need some data from
@@ -489,6 +490,13 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             }
         } else {
             a <- x$info[[1]]$sample[0]
+            if (nrow(mi)) {
+                if (any(!mi.na))
+                    stop('internal error: expecting all mi to be NA')
+                a <- rep(replace(x$info[[1]]$sample[1], TRUE, NA), nrow(mi))
+            } else {
+                a <- x$info[[1]]$sample[0]
+            }
         }
     } else if (Nidxs<=0) {
         # get both [] and [,drop=F]
@@ -526,7 +534,7 @@ rm.varray <- function(x, list=NULL) {
         remove(list=x.name, inherits=TRUE)
         for (i in seq(along=x$info)) {
             if (is.null(x$info[[i]]$value)) {
-                if (!is.null(x$info[[i]]$env.name)) {
+                if (!is.null(x$info[[i]]$env.name) && !identical(x$info[[i]]$env.name, FALSE)) {
                     env <- as.environment(x$info[[i]]$env.name)
                     if (exists(x$info[[i]]$name, envir=env))
                         remove(list=x$info[[i]]$name, envir=env, inherits=FALSE)

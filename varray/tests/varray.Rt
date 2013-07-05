@@ -135,6 +135,36 @@ a      NA  5 NA
 > x[c(T,F,F,F,T)]
 [1]  1 NA  3  9  5 12 NA 15
 > 
+> x[cbind(c(2,4,3,NA,NA), 2)]
+[1]  4  8  7 NA NA
+> x[cbind(c(NA,NA,2), 2)]
+[1] NA NA  4
+> x[cbind(c(NA,1,NA,2), 2)]
+[1] NA  3 NA  4
+> x[cbind(c(2,NA,1,NA,2), 2)]
+[1]  4 NA  3 NA  4
+> x[cbind(c(2,NA,1,NA), 2)]
+[1]  4 NA  3 NA
+> x[cbind(c(2,NA,NA), 2)]
+[1]  4 NA NA
+> x[cbind(c(2,NA,NA), NA)]
+[1] NA NA NA
+> x[cbind(c(2,NA,NA), c(1,NA,NA))]
+[1]  2 NA NA
+> x[cbind(c(2,NA,NA,1), c(1,NA,NA,1))]
+[1]  2 NA NA  1
+> x[cbind(c(NA,NA), c(1,NA))]
+[1] NA NA
+> x[cbind(c(NA,NA), c(NA,NA))]
+Error in `[.varray`(x, cbind(c(NA, NA), c(NA, NA))) : 
+  matrix indexing only works with numeric matrices
+> x[cbind(c(NA,NA), c(0*NA,NA))]
+[1] NA NA
+> x[cbind(c(NA,2), c(0*NA,NA))]
+[1] NA NA
+> x[cbind(c(1,2), c(0*NA,NA))]
+[1] NA NA
+> 
 > # Test with dimorder
 > at <- t(a)
 > bt <- t(b)

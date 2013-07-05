@@ -51,6 +51,8 @@ update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%
         comp.name <- paste(va.name, dateblock, sep='.')
 
     # get 'envir' and 'env.name'
+    if (identical(env.name, FALSE))
+        env.name <- NULL
     if (!is.null(envir)) {
         env.name <- fixGlobalEnvName(environmentName(envir))
     } else if (is.null(env.name) || identical(env.name, FALSE)) {
@@ -134,6 +136,8 @@ update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%
     if (is.null(keep.ordered)) keep.ordered <- TRUE
     # data.ii is the slices of 'data' that are to be found in existing components of 'va'
     data.ii <- which(!is.na(ex.ai))
+    if (identical(va$env.name, FALSE))
+        va$env.name <- NULL
     if (length(data.ii) || length(expand.comp.i)) {
         # work out which existing components of 'va' we need to work with
         exist.comp.i <- va$along.idx[ex.ai[data.ii]]
