@@ -1,6 +1,8 @@
 \name{varray}
 \alias{varray}
+\alias{rebuild.varray}
 \alias{as.array.varray}
+\alias{as.matrix.varray}
 \title{
   Construct a virtual array
 }
@@ -14,6 +16,8 @@ varray(\dots, along = 1, dimorder = NULL, env.name = FALSE, envir = NULL,
        naidxok = NA, dimnames = NULL, comp.name = NULL,
        keep.ordered = TRUE, umode = NULL)
 \method{as.array}{varray}(x, \dots)
+\method{as.matrix}{varray}(x, \dots)
+rebuild.varray(x)
 }
 \arguments{
   \item{\dots}{
@@ -90,6 +94,9 @@ varray(\dots, along = 1, dimorder = NULL, env.name = FALSE, envir = NULL,
   (the \code{along} dimension) must be stored in a single one of the
   component objects.
 
+  \code{rebuild.varray()} rebuilds a varray object and can be used when
+  the underlying objects have changed.
+
 }
 \value{
   \code{varray()} returns an S3 object of class \code{varray}.
@@ -116,5 +123,7 @@ as.array(x)
 x
 x[c('a'),c('x','z'),drop=FALSE]
 x[c('d','b','c'),c('y','z'),drop=FALSE]
+b <- b[-2,]
+x <- rebuild.varray(x)
 }
 \keyword{ misc }

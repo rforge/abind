@@ -126,6 +126,54 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
               class='varray')
 }
 
+rebuild.varray <- function(x) {
+    # Rebuild a varray object to update for changes in underlying objects
+    info <- lapply(x$info, FUN=function(comp) {
+        if (!is.null(comp$value))
+            z <- comp$value
+        else if (is.null(comp$env.name))
+            z <- get(comp$name, pos=1)
+        else
+            z <- get(comp$name, envir=as.environment(comp$env.name))
+        if (length(dim(z))==0)
+            stop("object '", comp$name, "' is not an array (has no dim)")
+        if (is.null(dimnames(z)))
+            stop('argument ', comp$name, ' does not refer to an array')
+        sample <- asub(z, rep(list(1), length(dim(z))))
+        comp$dim <- dim(z)
+        comp$dimnames <- dimnames(z)
+        comp$sample <- comp$sample
+        return(comp)
+    })
+    for (i in seq(along=info)[-1]) {
+        if (length(info[[i]]$dim) != length(info[[1]]$dim))
+            stop('chunk ', i, ' has different dimensionality: ',
+                 length(info[[i]]$dim), ' vs ', length(info[[1]]$dim))
+    }
+    dn <- lapply(seq(len=length(info[[1]]$dim)), function(i)
+                 unique(unlist(lapply(info, function(x) x$dimnames[[i]]))))
+    along <- x$along
+    dimorder <- x$dimorder
+    d <- sapply(dn, length)
+    along.idx <- integer(d[along])
+    naidxok <- all(sapply(info, '[[', 'naidxok'))
+    # convert d,dn to user dimorder
+    if (!all(dimorder == seq(length(d)))) {
+        d <- d[dimorder]
+        dn <- dn[dimorder]
+    }
+    rdimorder <- order(dimorder)
+    alongd <- rdimorder[along]
+    for (i in seq(to=1, from=length(info))) {
+        along.idx[match(info[[i]]$dimnames[[alongd]], dn[[along]])] <- i
+        info[[i]]$map <- lapply(seq(along=dn), function(j) match(dn[[j]], info[[i]]$dimnames[[rdimorder[j]]]))[rdimorder]
+    }
+    structure(list(dim=d, dimnames=dn, along=along, info=info, along.idx=along.idx,
+                   dimorder=dimorder, naidxok=naidxok, env.name=x$env.name, comp.name=x$comp.name,
+                   keep.ordered=x$keep.ordered, umode=x$umode),
+              class='varray')
+}
+
 fixGlobalEnvName <- function(name) {
     if (name=='R_GlobalEnv') '.GlobalEnv'
     else if (name=='') stop('cannot use an unnamed environment')
@@ -158,6 +206,8 @@ as.matrix.varray <- function(x, ...) {
     else
         as.matrix(as.array.varray(x, ...))
 }
+
+M <- as.array
 
 print.varray <- function(x, ...) {
     dot3 <- function(n) if (n<=4) seq(len=n) else c(1,2,NA,n)
@@ -467,8 +517,8 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
             b <- unlist(lapply(which(sapply(subidx, length)>0), function(i)
                 mi[subidx[[i]],alongd,drop=FALSE]), use.names=FALSE)
             # if there are NA's in mi[,alongd], it's length will not equal b's
-            if (any(is.na(mi[,alongd])) != (length(b)!=nrow(mi)))
-                stop("internal indexing inconsistency: expecting NA's in mi[,alongd] iff length(b)!=nrow(mi)")
+            if (any(is.na(mi)) != (length(b)!=nrow(mi)))
+                stop("internal indexing inconsistency: expecting NA's in mi iff length(b)!=nrow(mi)")
             if (length(b)!=length(mi[,alongd]) || !all(b==mi[,alongd])) {
                 # have to reconstruct the full numerical vector index
                 if (is.null(vi)) {
@@ -522,15 +572,16 @@ is.virtual.array <- function(x) UseMethod('is.virtual.array')
 rm.varray <- function(x, list=NULL) {
     if (is.null(list)) {
         x.name <- substitute(x)
-        if (!is.name(x.name))
+        if (!is.name(x.name) && !is.character(x.name))
             stop('must supply the name of a varray object')
         list <- as.character(x.name)
     }
     for (x.name in list) {
-        x <- get(x.name)
+        env <- find(x.name, numeric=TRUE)
+        x <- get(x.name, pos=env)
         if (!inherits(x, 'varray'))
             stop('must supply the name of a varray object')
-        remove(list=x.name, inherits=TRUE)
+        remove(list=x.name, inherits=FALSE, pos=env)
         for (i in seq(along=x$info)) {
             if (is.null(x$info[[i]]$value)) {
                 if (!is.null(x$info[[i]]$env.name) && !identical(x$info[[i]]$env.name, FALSE)) {
@@ -540,8 +591,9 @@ rm.varray <- function(x, list=NULL) {
                     else
                         warning('component ', x$info[[i]]$name, ' not found in env ', x$info[[i]]$env.name)
                 } else {
-                    if (exists(x$info[[i]]$name, inherits=TRUE))
-                        remove(list=x$info[[i]]$name, inherits=TRUE)
+                    env <- find(x$info[[i]]$name, numeric=TRUE)
+                    if (length(env))
+                        remove(list=x$info[[i]]$name, pos=env[1], inherits=TRUE)
                     else
                         warning('component ', x$info[[i]]$name, ' not found')
                 }

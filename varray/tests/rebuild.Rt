@@ -1,0 +1,52 @@
+> options(error=function() NULL)
+> a <- array(1:6, dim=c(2,3), dimnames=list(letters[1:2],letters[23:25]))
+> b <- array(7:15, dim=c(3,3), dimnames=list(letters[3:5],letters[24:26]))
+> x <- varray(a,b)
+> x
+5 x 4 virtual matrix with dimnames:
+   [1] a, b, ..., e 
+   [2] w, x, y, z 
+with 2 sub-arrays:
+sub-array 1: 'a' (found in env '.GlobalEnv') 2 x 3 matrix with dimnames:
+   [1] a, b 
+   [2] w, x, y 
+sub-array 2: 'b' (found in env '.GlobalEnv') 3 x 3 matrix with dimnames:
+   [1] c, d, e 
+   [2] x, y, z 
+> as.matrix(x)
+   w x  y  z
+a  1 3  5 NA
+b  2 4  6 NA
+c NA 7 10 13
+d NA 8 11 14
+e NA 9 12 15
+> b <- b[-2,]
+> # With a changed component, as.matrix(x) works because of the way components are combined
+> as.matrix(x)
+   w  x  y  z
+a  1  3  5 NA
+b  2  4  6 NA
+c NA  7 10 13
+d NA NA NA NA
+e NA  9 12 15
+> # but regular indexing can give incorrect results
+> x[c(1,4),]
+   w x  y  z
+a  1 3  5 NA
+d NA 9 12 15
+> x[c('a','e'),]
+Error in do.call("[", c(list(yy), jj1, list(drop = FALSE))) : 
+  subscript out of bounds
+> x[c('a','d'),]
+   w x  y  z
+a  1 3  5 NA
+d NA 9 12 15
+> 
+> y <- rebuild.varray(x)
+> as.array(y)
+   w x  y  z
+a  1 3  5 NA
+b  2 4  6 NA
+c NA 7 10 13
+e NA 9 12 15
+> 

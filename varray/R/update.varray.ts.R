@@ -1,7 +1,10 @@
-update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%Y', dates.by='bizdays', holidays='NYSEC',
+update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y', dates.by='bizdays', holidays='NYSEC',
                              vmode='single', along=va$along, dimorder=va$dimorder,
                              env.name=va$env.name, envir=NULL, naidxok=va$naidxok,
-                             keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE) {
+                             keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE, ...) {
+    # have ... args to satisfy the generic update()
+    if (length(list(...)))
+        warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
     non.null <- function(x, y) if (!is.null(x)) x else y
     # TODO:
     #   Force use of umode
@@ -22,8 +25,9 @@ update.varray.ts <- function(va.name, data, comp.name=va$comp.name, dateblock='%
     # them.
 
     # get 'va' as NULL or the varray
+    va.name <- object
     if (!is.character(va.name))
-        stop('va.name must be supplied as character data')
+        stop('object must be supplied as character data naming the virtual array')
     if (exists(va.name)) {
         va <- get(va.name)
     } else {

@@ -1,8 +1,14 @@
-update.Matrix <- function(x.name, data, need.dimnames=list(NULL, NULL)) {
-    if (!exists(x.name)) {
+update.Matrix <- function(object, data, need.dimnames=list(NULL, NULL), ...) {
+    # have ... args to satisfy the generic update()
+    if (length(list(...)))
+        warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
+    va.name <- object
+    if (!is.character(va.name))
+        stop('object must be supplied as character data naming matrix to be updated')
+    if (!exists(va.name)) {
         x <- Matrix(data, sparse=TRUE)
     } else {
-        x <- get(x.name)
+        x <- get(va.name)
     }
     dn <- list(sort(unique(c(rownames(x), rownames(data), need.dimnames[[1]])), na.last=NA),
                sort(unique(c(colnames(x), colnames(data), need.dimnames[[2]])), na.last=NA))
@@ -10,32 +16,38 @@ update.Matrix <- function(x.name, data, need.dimnames=list(NULL, NULL)) {
     if (!isTRUE(all.equal(rownames(x), dn[[1]]))) {
         new <- setdiff(dn[[1]], rownames(x))
         if (length(new))
-            x <- rBind(x, array2(sample, dimnames=list(new, colnames(x))))
+            x <- rBind(x, array(sample, dimnames=list(new, colnames(x)), dim=c(length(new), ncol(x))))
         if (!isTRUE(all.equal(rownames(x), dn[[1]])))
             x <- x[dn[[1]],,drop=FALSE]
     }
     if (!isTRUE(all.equal(colnames(x), dn[[2]]))) {
         new <- setdiff(dn[[2]], colnames(x))
         if (length(new))
-            x <- cBind(x, array2(sample, dimnames=list(rownames(x), new)))
+            x <- cBind(x, array(sample, dimnames=list(rownames(x), new), dim=c(nrow(x), length(new))))
         if (!isTRUE(all.equal(rownames(x), dn[[1]])))
             x <- x[dn[[1]],,drop=FALSE]
     }
     ii <- cbind(rep(match(rownames(data), rownames(x)), ncol(data)),
                 rep(match(colnames(data), colnames(x)), each=nrow(data)))
     x[ii] <- as.vector(data)
-    assign(x.name, value=x, pos=1)
+    assign(va.name, value=x, pos=1)
 }
 
-update.matrix <- function(x.name, data, need.dimnames=list(NULL, NULL)) {
-    if (!exists(x.name)) {
+update.matrix <- function(object, data, need.dimnames=list(NULL, NULL), ...) {
+    # have ... args to satisfy the generic update()
+    if (length(list(...)))
+        warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
+    va.name <- object
+    if (!is.character(va.name))
+        stop('object must be supplied as character data naming matrix to be updated')
+    if (!exists(va.name)) {
         if (!is.matrix(data))
             stop('data must be a matrix')
         x <- data
     } else {
-        x <- get(x.name)
+        x <- get(va.name)
         if (!is.matrix(x))
-            stop(x.name, ' already exists but is not a matrix')
+            stop(va.name, ' already exists but is not a matrix')
     }
     dn <- list(sort(unique(c(rownames(x), rownames(data), need.dimnames[[1]])), na.last=NA),
                sort(unique(c(colnames(x), colnames(data), need.dimnames[[2]])), na.last=NA))
@@ -43,19 +55,19 @@ update.matrix <- function(x.name, data, need.dimnames=list(NULL, NULL)) {
     if (!isTRUE(all.equal(rownames(x), dn[[1]]))) {
         new <- setdiff(dn[[1]], rownames(x))
         if (length(new))
-            x <- rbind(x, array2(sample, dimnames=list(new, colnames(x))))
+            x <- rbind(x, array(sample, dimnames=list(new, colnames(x)), dim=c(length(new), ncol(x))))
         if (!isTRUE(all.equal(rownames(x), dn[[1]])))
             x <- x[dn[[1]],,drop=FALSE]
     }
     if (!isTRUE(all.equal(colnames(x), dn[[2]]))) {
         new <- setdiff(dn[[2]], colnames(x))
         if (length(new))
-            x <- cbind(x, array2(sample, dimnames=list(rownames(x), new)))
+            x <- cbind(x, array(sample, dimnames=list(rownames(x), new), dim=c(nrow(x), length(new))))
         if (!isTRUE(all.equal(rownames(x), dn[[1]])))
             x <- x[dn[[1]],,drop=FALSE]
     }
     ii <- cbind(rep(match(rownames(data), rownames(x)), ncol(data)),
                 rep(match(colnames(data), colnames(x)), each=nrow(data)))
     x[ii] <- as.vector(data)
-    assign(x.name, value=x, pos=1)
+    assign(va.name, value=x, pos=1)
 }
