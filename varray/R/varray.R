@@ -523,29 +523,34 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
         })
         if (length(a) > 1) {
             a <- unlist(a, use.names=FALSE)
-            # are subchunks out-of-order?
             # get numeric indices of the along-dim as they appear in 'a'
-            b <- unlist(lapply(which(sapply(subidx, length)>0), function(i)
-                mi[subidx[[i]],alongd,drop=FALSE]), use.names=FALSE)
-            # if there are NA's in mi[,alongd], it's length will not equal b's
-            if (any(is.na(mi)) != (length(b)!=nrow(mi)))
+            b <- unlist(lapply(which(sapply(subidx, length)>0),
+                               function(i) mi[subidx[[i]],alongd,drop=FALSE]), use.names=FALSE)
+            # if there were NA's in mi[,alongd], it's length will not equal b's
+            if (any(mi.na) != (length(b)!=nrow(mi)))
                 stop("internal indexing inconsistency: expecting NA's in mi iff length(b)!=nrow(mi)")
+            # are subchunks out-of-order?
             if (length(b)!=length(mi[,alongd]) || !all(b==mi[,alongd])) {
-                # have to reconstruct the full numerical vector index
+                # Have to reconstruct the full numerical vector index vi corresponding to mi
+                # This will have NA's in it if mi has NA's.
+                # Might already have vi if we started with a vector index
                 if (is.null(vi)) {
                     vi <- mi[,1]
                     for (j in seq(ncol(mi))[-1])
                         vi <- vi + ((mi[,j]-1) * prod(c(1,d)[seq(len=j)]))
                 }
+                # ai is the vector indices of the retrieved elements corresponding to non-NA rows in mi
                 ai <- vi[unlist(subidx)]
+                # get elements of the result in the correct order
+                # here is where NA's corresponding to NA rows in mi get introduced back into the result
                 a <- a[match(vi, ai)]
             }
         } else if (length(a) == 1) {
-            if (any(is.na(mi[,alongd]))) {
+            if (any(mi.na)) {
                 i <- which(sapply(subidx, length)>0)
                 if (length(i)!=1)
                     stop("internal indexing inconsistency: expecting only one non-null subidx")
-                a <- replace(rep(NA, nrow(mi)), which(!is.na(mi[,alongd])), a[[1]])
+                a <- replace(rep(NA, nrow(mi)), which(!mi.na), a[[1]])
             } else {
                 a <- a[[1]]
             }
