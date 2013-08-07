@@ -1,4 +1,4 @@
-varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naidxok=NA, dimnames=NULL, comp.name=NULL, keep.ordered=TRUE, umode=NULL) {
+varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naidxok=NA, dimnames=NULL, comp.name=NULL, keep.ordered=TRUE, umode=NULL, fill=NULL) {
     # Can call like this:
     #    varray(a, b, c)
     # or varray('a', 'b', 'c')
@@ -118,12 +118,16 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
     # comp.name:    a format specification for how to derive the component name from the dates
     # keep.ordered: logical; if TRUE, always keep the user-visible dimension ordered
     # umode:        native storage mode of the returned object (e.g., 'numeric', 'integer', 'raw', 'character')
+    # fill:         optional; a value to replace missing or NA values with
     # creator.args: args to supply to creator, e.g., for 'ff' list(vmode='single')
     # expander.args:
-    structure(list(dim=d, dimnames=dn, along=along, info=info, along.idx=along.idx,
+    res <- structure(list(dim=d, dimnames=dn, along=along, info=info, along.idx=along.idx,
                    dimorder=dimorder, naidxok=naidxok, env.name=env.name, comp.name=comp.name,
                    keep.ordered=keep.ordered, umode=umode),
               class='varray')
+    if (!is.null(fill) && !is.na(fill))
+        res$fill <- fill
+    return(res)
 }
 
 rebuild.varray <- function(x) {
@@ -168,10 +172,13 @@ rebuild.varray <- function(x) {
         along.idx[match(info[[i]]$dimnames[[alongd]], dn[[along]])] <- i
         info[[i]]$map <- lapply(seq(along=dn), function(j) match(dn[[j]], info[[i]]$dimnames[[rdimorder[j]]]))[rdimorder]
     }
-    structure(list(dim=d, dimnames=dn, along=along, info=info, along.idx=along.idx,
+    res <- structure(list(dim=d, dimnames=dn, along=along, info=info, along.idx=along.idx,
                    dimorder=dimorder, naidxok=naidxok, env.name=x$env.name, comp.name=x$comp.name,
                    keep.ordered=x$keep.ordered, umode=x$umode),
               class='varray')
+    if (!is.null(x$fill) && !is.na(x$fill))
+        res$fill <- x$fill
+    return(res)
 }
 
 fixGlobalEnvName <- function(name) {
@@ -181,6 +188,7 @@ fixGlobalEnvName <- function(name) {
 }
 
 as.array.varray <- function(x, ...) {
+    fill <- if (is.null(x$fill)) NA else x$fill
     rdimorder <- order(x$dimorder)
     alongd <- rdimorder[x$along]
     y <- abind(along=alongd, lapply(x$info,
@@ -191,12 +199,14 @@ as.array.varray <- function(x, ...) {
                        z <- get(comp$name, pos=1)
                    else
                        z <- get(comp$name, envir=as.environment(comp$env.name))
-                   conform(z, x$dimnames[rdimorder], along=seq(len=length(x$dim))[-alongd])
+                   if (!is.na(fill) && any(i <- is.na(z)))
+                       z[i] <- fill
+                   conform(z, x$dimnames[rdimorder], along=seq(len=length(x$dim))[-alongd], fill=fill)
                }))
     if (!all(x$dimorder == seq(length(x$dim))))
         y <- aperm(y, order(x$dimorder))
     if (!isTRUE(all.equal(x$dimnames[[x$along]], dimnames(y)[[x$along]])))
-        y <- conform(y, x$dimnames, along=x$along)
+        y <- conform(y, x$dimnames, along=x$along, fill=fill)
     y
 }
 
@@ -289,6 +299,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
     naidxok <- x$naidxok
     if (is.null(naidxok) || is.na(naidxok))
         naidxok <- FALSE
+    fill <- if (is.null(x$fill)) NA else x$fill
     so <- x$dimorder
     if (is.null(so))
         so <- x$storage.order
@@ -553,6 +564,8 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
     } else {
         stop("need ", length(d), " or 1 (matrix or vector) index arguments")
     }
+    if (!is.na(fill) && any(i <- is.na(a)))
+        a[i] <- fill
     a
 }
 

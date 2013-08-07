@@ -14,7 +14,7 @@
 \usage{
 varray(\dots, along = 1, dimorder = NULL, env.name = FALSE, envir = NULL,
        naidxok = NA, dimnames = NULL, comp.name = NULL,
-       keep.ordered = TRUE, umode = NULL)
+       keep.ordered = TRUE, umode = NULL, fill = NULL)
 \method{as.array}{varray}(x, \dots)
 \method{as.matrix}{varray}(x, \dots)
 rebuild.varray(x)
@@ -71,6 +71,9 @@ rebuild.varray(x)
 }
 \item{umode}{
   The storage mode of the component objects.
+}
+\item{fill}{
+  The value which is returned instead of explicit or implicit NAs.
 }
 }
 \details{
