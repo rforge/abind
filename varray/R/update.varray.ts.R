@@ -1,7 +1,7 @@
 update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y', dates.by='bizdays', holidays='NYSEC',
                              vmode='single', along=va$along, dimorder=va$dimorder,
                              env.name=va$env.name, envir=NULL, naidxok=va$naidxok,
-                             keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE, ...) {
+                             keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE, fill=NA, ...) {
     # have ... args to satisfy the generic update()
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
@@ -221,6 +221,8 @@ update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y
     }
     va$dim <- d
     va$dimnames <- dn
+    if (!is.null(fill) && !is.na(fill))
+        va$fill <- fill
     assign(va.name, value=va, envir=envir)
     invisible(va)
 }
