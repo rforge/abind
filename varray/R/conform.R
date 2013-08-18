@@ -292,7 +292,7 @@ union.dimnames <- function(..., along=NULL) {
     }
     nDotArgs <- nargs() - !missing(along)
     # make x be the first object with dimnames, and args be a list of the remainder
-    if (is.list(..1) && !is.data.frame(..1) && !is.dimnames(..1)) {
+    if (is.list(..1) && !is.data.frame(..1) && !is.dimnames(..1) && !is.virtual.array(..1)) {
         x <- get.dimnames(..1[[1]])
         args <- c(..1[-1], list(...)[-1])
         args.names <- paste("obj", seq(along=args), sep="")
@@ -352,7 +352,7 @@ intersect.dimnames <- function(..., along=NULL) {
     }
     nDotArgs <- nargs() - !missing(along)
     # make x be the first object with dimnames, and args be a list of the remainder
-    if (is.list(..1) && !is.data.frame(..1) && !is.dimnames(..1)) {
+    if (is.list(..1) && !is.data.frame(..1) && !is.dimnames(..1) && !is.virtual.array(..1)) {
         x <- get.dimnames(..1[[1]])
         args <- c(..1[-1], list(...)[-1])
         args.names <- paste("obj", seq(along=args), sep="")
