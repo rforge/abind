@@ -1,14 +1,13 @@
 vstorage.mode <- function(x, deep=FALSE) UseMethod('vstorage.mode')
-
 vstorage.mode.varray <- function(x, deep=FALSE) {
     if (deep) {
-        retuurn(storage.mode(sapply(x$info, function(y) {
+        return(storage.mode(sapply(x$info, function(y) {
             env <- as.environment(non.null(y$env.name, non.null(x$env.name, 1)))
-            comp.data <- non.null(y$value, gA(y$name, envir=env, inherits=FALSE))
+            comp.data <- non.null(y$value, get(y$name, envir=env, inherits=FALSE))
             vector(storage.mode(comp.data), 1)
         }, simplify=TRUE)))
     } else {
-        r A urn(storage.mode(sapply(x$info, '[[', 'sample', simplify=TRUE)))
+        return(storage.mode(sapply(x$info, '[[', 'sample', simplify=TRUE)))
     }
 }
 `vstorage.mode<-` <- function(x, value) UseMethod('vstorage.mode<-')
