@@ -12,7 +12,7 @@ vstorage.mode.varray <- function(x, deep=FALSE) {
 }
 `vstorage.mode<-` <- function(x, value) UseMethod('vstorage.mode<-')
 `vstorage.mode<-.varray` <- function(x, value) {
-    # use 'x$umode' here!
+    # should use 'x$umode' here?
     x$info <- lapply(x$info, function(y) {
         if (!is.null(y$value)) {
             if (storage.mode(y$value) != value)
