@@ -193,6 +193,7 @@ as.array.varray <- function(x, ...) {
     alongd <- rdimorder[x$along]
     y <- abind(along=alongd, lapply(x$info,
                function(comp) {
+                   # fix this code to use x$env
                    if (!is.null(comp$value))
                        z <- comp$value
                    else if (is.null(comp$env.name))
@@ -217,7 +218,8 @@ as.matrix.varray <- function(x, ...) {
         as.matrix(as.array.varray(x, ...))
 }
 
-M <- as.array
+# as.array does not work on data.frame objects...
+M <- function(x, ...) if (non.null(length(dim(x)), 1)>2) as.array(x, ...) else as.matrix(x, ...)
 
 print.varray <- function(x, ...) {
     dot3 <- function(n) if (n<=4) seq(len=n) else c(1,2,NA,n)
@@ -486,7 +488,7 @@ storage.mode.varray <- function(x) storage.mode(sapply(x$info, '[[', 'sample'))
                 stop("a single argument must be a ", length(d), " column matrix")
             if (mode(..1)!="numeric")
                 stop("matrix indexing only works with numeric matrices")
-            mi <- ..1[,so]
+            mi <- ..1[,so,drop=FALSE]
             vi <- NULL
         } else {
             stop("a single argument must be a ", length(d), " column matrix or a vector")
@@ -580,7 +582,7 @@ is.true <- function(x) (x & !is.na(x))
 "dim<-.varray" <- function(x, value) stop('dim for varray is read-only')
 "length<-.varray" <- function(x, value) stop('length for varray is read-only')
 "mode<-.varray" <- function(x, value) stop('mode for varray is read-only')
-"storage.mode<-.varray" <- function(x, value) stop('storage.mode for varray is read-only')
+# "storage.mode<-.varray" <- function(x, value) stop('storage.mode for varray is read-only')
 "[<-.varray" <- function(x, i, j, ..., value) stop('cannot replace parts a varray (varray is read-only -- you must work with the sub-arrays)')
 
 is.virtual.array.varray <- function(x) TRUE
