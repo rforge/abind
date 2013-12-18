@@ -481,5 +481,5 @@ some.examples <- function(x, max.examples=3, collapse=NULL,
             xc <- paste(xc, " (", len, " total)", sep="")
         else
             xc <- c(xc, paste("(", len, " total)", sep=""))
-    x
+    xc
 }
