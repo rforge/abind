@@ -448,7 +448,7 @@ non.null <- function(x, y) if (is.null(x)) y else x
 
 # pick some initial elements from a vector
 some.examples <- function(x, max.examples=3, collapse=NULL,
-                          quote=FALSE, ellipsis=FALSE, total=FALSE)
+                          quote=FALSE, ellipsis=FALSE, total=FALSE, final=FALSE)
 {
     len <- length(x)
     x <- x[1:min(len, max.examples)]
