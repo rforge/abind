@@ -451,7 +451,6 @@ some.examples <- function(x, max.examples=3, collapse=NULL,
                           quote=FALSE, ellipsis=FALSE, total=FALSE, final=FALSE)
 {
     len <- length(x)
-    x <- x[1:min(len, max.examples)]
     # don't return something like 'A, B, ..., D' for 'A, B, C, D'
     if (len == max.examples+1 && ellipsis)
         max.examples <- len
