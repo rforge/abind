@@ -452,6 +452,14 @@ some.examples <- function(x, max.examples=3, collapse=NULL,
 {
     len <- length(x)
     x <- x[1:min(len, max.examples)]
+    # don't return something like 'A, B, ..., D' for 'A, B, C, D'
+    if (len == max.examples+1 && ellipsis)
+        max.examples <- len
+    xc <- as.character(x)
+    if (final)
+        xc <- xc[unique(c(seq(len=min(len, max.examples-1)), len))]
+    else
+        xc <- xc[seq(len=min(len, max.examples))]
     if (is.logical(quote) && quote)
         quote <- "\""
     if (is.logical(collapse))
@@ -460,15 +468,18 @@ some.examples <- function(x, max.examples=3, collapse=NULL,
         else
             collapse <- NULL
     if (is.character(quote))
-        x <- paste(quote, as.character(x), quote, sep="")
+        xc <- paste(quote, xc, quote, sep="")
     if (ellipsis && len > max.examples)
-        x <- c(as.character(x), "...")
+        if (final)
+            xc <- c(head(xc, -1), "...", tail(xc, 1))
+        else
+            xc <- c(xc, "...")
     if (!is.null(collapse))
-        x <- paste(as.character(x), collapse=collapse)
+        xc <- paste(xc, collapse=collapse)
     if (total && len > max.examples)
         if (!is.null(collapse))
-            x <- paste(as.character(x), " (", len, " total)", sep="")
+            xc <- paste(xc, " (", len, " total)", sep="")
         else
-            x <- c(as.character(x), paste("(", len, " total)", sep=""))
+            xc <- c(xc, paste("(", len, " total)", sep=""))
     x
 }
