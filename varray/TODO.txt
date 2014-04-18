@@ -1,0 +1,3 @@
+* add need.dimnames arg to update.varray.ts
+* add tests for multi-valued keep.ordered in update.varray.ts
+* remove args or add functionality for vmode, holidays & dates.by in update.varray.ts

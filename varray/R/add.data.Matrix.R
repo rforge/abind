@@ -1,5 +1,9 @@
-update.Matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.ordered=TRUE, ...) {
-    # have ... args to satisfy the generic update()
+# Not a generic because the first argument is a character string, so methods
+# do not have a class of object to dispatch on.
+# add.data <- function(object, data, need.dimnames=list(NULL, NULL), keep.ordered=TRUE, ...) UseMethod('add.data')
+
+add.data.Matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.ordered=TRUE, ...) {
+    # have ... args to satisfy the generic add.data()
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
     va.name <- object
@@ -36,8 +40,8 @@ update.Matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.ord
     assign(va.name, value=x, pos=1)
 }
 
-update.matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.ordered=TRUE, ...) {
-    # have ... args to satisfy the generic update()
+add.data.matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.ordered=TRUE, ...) {
+    # have ... args to satisfy the generic add.data()
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
     va.name <- object

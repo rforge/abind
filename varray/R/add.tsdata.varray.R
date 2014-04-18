@@ -1,9 +1,9 @@
-update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y',
-                             # dates.by='bizdays', holidays='NYSEC', vmode='single',
-                             along=va$along, dimorder=va$dimorder,
-                             env.name=va$env.name, envir=NULL, naidxok=va$naidxok,
-                             keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE, fill=NA, ...) {
-    # have ... args to satisfy the generic update()
+add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%Y',
+                              # dates.by='bizdays', holidays='NYSEC', vmode='single',
+                              along=va$along, dimorder=va$dimorder,
+                              env.name=va$env.name, envir=NULL, naidxok=va$naidxok,
+                              keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE, fill=NA, ...) {
+    # have ... args to satisfy the generic function
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
     non.null <- function(x, y) if (!is.null(x)) x else y
@@ -200,8 +200,8 @@ update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y
             stop('dimorder must be some permutation of 1:length(d)')
     rdimorder <- order(dimorder)
     alongd <- rdimorder[along]
-    if (any(keep.ordered)) {
-        # reorder the components based on the first element of their 'along' dimname
+    if (keep.ordered[along]) {
+        # reorder the component objects based on the first element of their 'along' dimname
         el1 <- sapply(va$info, function(info) info$dimnames[[alongd]][1])
         el1ord <- order(el1, na.last=TRUE)
         if (!all(diff(el1ord)==1))
@@ -214,10 +214,10 @@ update.varray.ts <- function(object, data, comp.name=va$comp.name, dateblock='%Y
         d <- d[dimorder]
         dn <- dn[dimorder]
     }
-    if (is.null(va$keep.ordered) || va$keep.ordered)
-        dn <- lapply(dn, sort, na.last=TRUE)
+    if (is.null(keep.ordered) || any(keep.ordered))
+        dn[keep.orderedr] <- lapply(dn[keep.orderedr], sort, na.last=TRUE)
     # fix 'map' in all info components
-    # eventualy, record which components were changed, and only update those
+    # eventually, record which components were changed, and only update those
     for (i in seq(to=1, from=length(va$info))) {
         va$along.idx[match(va$info[[i]]$dimnames[[alongd]], dn[[along]])] <- i
         va$info[[i]]$map <- lapply(seq(along=dn), function(j) match(dn[[j]], va$info[[i]]$dimnames[[rdimorder[j]]]))[rdimorder]

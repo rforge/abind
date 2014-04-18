@@ -1,4 +1,8 @@
-export(varray, update.varray.ts, conform, update.matrix, update.Matrix, rm.varray, is.virtual.array, is.virtual.array.varray, rebuild.varray, vstorage.mode, 'vstorage.mode<-')
+export(varray,
+       update.varray.ts, update.matrix, update.Matrix,
+       add.tsdata.varray, add.data.matrix, add.data.Matrix,
+       conform, rm.varray, is.virtual.array, is.virtual.array.varray,
+       rebuild.varray, vstorage.mode, 'vstorage.mode<-')
 S3method(print, varray)
 S3method(as.array, varray)
 S3method(as.matrix, varray)
@@ -8,6 +12,7 @@ S3method(dim, varray)
 S3method(dimnames, varray)
 S3method(mode, varray)
 S3method(storage.mode, varray)
+S3method(vstorage.mode, varray)
 S3method('[<-', varray)
 S3method('dim<-', varray)
 S3method('dimnames<-', varray)

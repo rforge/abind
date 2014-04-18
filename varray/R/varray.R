@@ -620,4 +620,5 @@ rm.varray <- function(x, list=NULL) {
             }
         }
     }
+    invisible(list)
 }
