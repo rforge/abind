@@ -1,6 +1,8 @@
 \name{add.data.Matrix}
 \alias{add.data.Matrix}
 \alias{add.data.matrix}
+\alias{update.Matrix}
+\alias{update.matrix}
 \title{
   Update the contents of a Matrix or matrix object
 }
@@ -11,6 +13,8 @@
 \usage{
 add.data.Matrix(object, data, need.dimnames = list(NULL, NULL), keep.ordered = TRUE, ...)
 add.data.matrix(object, data, need.dimnames = list(NULL, NULL), keep.ordered = TRUE, ...)
+update.Matrix(object, data, need.dimnames = list(NULL, NULL), keep.ordered = TRUE, ...)
+update.matrix(object, data, need.dimnames = list(NULL, NULL), keep.ordered = TRUE, ...)
 }
 \arguments{
   \item{object}{
@@ -37,6 +41,10 @@ Dimension names that should be included in the updated object.
 \details{
   Contents of \code{data} are inserted into \code{object}, expanding the
   dimensions of \code{object} if necessary.
+
+  \code{update.matrix} is an obselete name for \code{add.data.matrix}.
+
+  \code{update.Matrix} is an obselete name for \code{add.data.Matrix}.
 }
 \value{
   Invoked for its side effect, which is altering the value of the

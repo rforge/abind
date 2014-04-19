@@ -1,7 +1,7 @@
-export(varray,
+export(varray, conform,
        update.varray.ts, update.matrix, update.Matrix,
        add.tsdata.varray, add.data.matrix, add.data.Matrix,
-       conform, rm.varray, is.virtual.array, is.virtual.array.varray,
+       rm.varray, is.virtual.array, is.virtual.array.varray,
        rebuild.varray, vstorage.mode, 'vstorage.mode<-')
 S3method(print, varray)
 S3method(as.array, varray)

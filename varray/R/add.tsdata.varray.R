@@ -1,8 +1,9 @@
-add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%Y',
+add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%Y', format=va$format,
                               # dates.by='bizdays', holidays='NYSEC', vmode='single',
                               along=va$along, dimorder=va$dimorder,
                               env.name=va$env.name, envir=NULL, naidxok=va$naidxok,
-                              keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE, fill=NA, ...) {
+                              keep.ordered=va$keep.ordered, umode=NULL, store.env.name=FALSE,
+                              fill=NA, ...) {
     # have ... args to satisfy the generic function
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
@@ -53,7 +54,7 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
         stop('along must be in 1..', length(non.null(va$info[[1]]$dim, dim(data))))
 
     if (is.null(comp.name))
-        comp.name <- paste(va.name, dateblock, sep='.')
+        comp.name <- paste('.', va.name, dateblock, sep='.')
 
     # get 'envir' and 'env.name'
     if (identical(env.name, FALSE))
@@ -79,6 +80,8 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
         dimorder <- seq(length=length(dd))
     if (is.null(naidxok))
         naidxok <- NA
+    if (is.null(format))
+        format <- '%Y-%m-%d'
     rdimorder <- order(dimorder)
 
     # find existing sub-components
@@ -90,7 +93,9 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
     expand.comp.i <- integer(0)
     if (length(new.slices) || is.null(va)) {
         # new.slices is integer: the slices in 'data' that need new subcomponents
-        new.slices.scn <- format(dateParse(ddn[[along]][new.slices]), format=comp.name)
+        new.slices.scn <- format(strptime(ddn[[along]][new.slices], format), format=comp.name)
+        if (any(is.na(new.slices.scn)))
+            stop('generated NA component name for some dimnames: ', paste(ddn[[along]][new.slices][is.na(new.slices.scn)], collapse=', '))
         all.scn.u <- unique(c(ex.scn, new.slices.scn))
         new.scn.u <- setdiff(unique(new.slices.scn), ex.scn)
         expand.comp.i <- match(intersect(unique(new.slices.scn), ex.scn), ex.scn)
@@ -102,7 +107,8 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
                                  info=rep(list(list(name=NULL, dim=NULL, dimnames=NULL, env.name=NULL,
                                           sample=sample, naidxok=NULL, map=NULL)), length(all.scn.u)),
                                  along.idx=NULL, dimorder=dimorder, naidxok=naidxok, env.name=env.name,
-                                 comp.name=comp.name, keep.ordered=keep.ordered, umode=storage.mode(sample)),
+                                 comp.name=comp.name, format=format,
+                                 keep.ordered=keep.ordered, umode=storage.mode(sample)),
                             class='varray')
         } else {
             va$info <- c(va$info, rep(list(list(name=NULL, dim=NULL, dimnames=NULL, env.name=NULL,

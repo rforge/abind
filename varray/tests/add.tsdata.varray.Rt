@@ -25,7 +25,7 @@
 2002-11-01 NA 105 112 119
 2002-12-01 NA 106 113 120
 2003-01-01 NA 107 114 121
-> update.varray.ts('v', z, comp.name='vvv.%Y', along=1)
+> add.tsdata.varray('v', z, comp.name='vvv.%Y', along=1)
 > as.array(v)
             A  B  C
 2001-05-01  1 25 49
@@ -53,7 +53,7 @@
 2003-03-01 23 47 71
 2003-04-01 24 48 72
 > 
-> update.varray.ts('v', y)
+> add.tsdata.varray('v', y)
 > as.array(v)
             A   B   C   D
 2001-05-01  1  25  49  NA
@@ -82,7 +82,7 @@
 2003-04-01 24  48  72  NA
 > 
 > # Need tests for permuted component
-> update.varray.ts('vvt', x, comp.name='vvt.%Y', along=1, dimorder=2:1)
+> add.tsdata.varray('vvt', x, comp.name='vvt.%Y', along=1, dimorder=2:1)
 > as.array(vvt)
             A  B  C
 2001-05-01  1 16 31
@@ -101,7 +101,7 @@
 2002-06-01 14 29 44
 2002-07-01 15 30 45
 > 
-> update.varray.ts('vvt', y)
+> add.tsdata.varray('vvt', y)
 > as.array(vvt)
             A   B   C   D
 2001-05-01  1  16  31  NA
@@ -130,14 +130,14 @@
 > x <- array(1:72, dim=c(24, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=24, by='months')), c('A','B','C')))
 > rm(list='v')
 > rm(list=ls(pat='vvv'))
-> update.varray.ts('v', x[8:9,c(1,3)], comp.name='vvv.%Y', along=1)
+> add.tsdata.varray('v', x[8:9,c(1,3)], comp.name='vvv.%Y', along=1)
 > as.array(v)
            A  C
 2001-12-01 8 56
 2002-01-01 9 57
 > all(is.na(as.array(v)) | conform(x, as.array(v))==as.array(v))
 [1] TRUE
-> update.varray.ts('v', x[c(7,10),2,drop=F])
+> add.tsdata.varray('v', x[c(7,10),2,drop=F])
 > as.array(v)
             A  B  C
 2001-11-01 NA 31 NA
@@ -146,7 +146,7 @@
 2002-02-01 NA 34 NA
 > all(is.na(as.array(v)) | conform(x, as.array(v))==as.array(v))
 [1] TRUE
-> update.varray.ts('v', x[c(1,24),3,drop=F])
+> add.tsdata.varray('v', x[c(1,24),3,drop=F])
 > as.array(v)
             A  B  C
 2001-05-01 NA NA 49
@@ -158,7 +158,7 @@
 > all(is.na(as.array(v)) | conform(x, as.array(v))==as.array(v))
 [1] TRUE
 > 
-> update.varray.ts('v', x[c(1:4,21:24),1:2,drop=F])
+> add.tsdata.varray('v', x[c(1:4,21:24),1:2,drop=F])
 > as.array(v)
             A  B  C
 2001-05-01  1 25 49
@@ -176,7 +176,7 @@
 > all(is.na(as.array(v)) | conform(x, as.array(v))==as.array(v))
 [1] TRUE
 > 
-> update.varray.ts('v', x[c(2:23),3,drop=F])
+> add.tsdata.varray('v', x[c(2:23),3,drop=F])
 > as.array(v)
             A  B  C
 2001-05-01  1 25 49
@@ -206,7 +206,7 @@
 > all(is.na(as.array(v)) | conform(x, as.array(v))==as.array(v))
 [1] TRUE
 > 
-> update.varray.ts('v', x[c(10:21),1:3,drop=F])
+> add.tsdata.varray('v', x[c(10:21),1:3,drop=F])
 > as.array(v)
             A  B  C
 2001-05-01  1 25 49
@@ -236,7 +236,7 @@
 > all(is.na(as.array(v)) | conform(x, as.array(v))==as.array(v))
 [1] TRUE
 > 
-> update.varray.ts('v', x[c(5:9),1:2,drop=F])
+> add.tsdata.varray('v', x[c(5:9),1:2,drop=F])
 > as.array(v)
             A  B  C
 2001-05-01  1 25 49
@@ -266,7 +266,7 @@
 > all(is.na(as.array(v)) | conform(x, as.array(v))==as.array(v))
 [1] TRUE
 > 
-> update.varray.ts('v', x[c(8:9),2,drop=F])
+> add.tsdata.varray('v', x[c(8:9),2,drop=F])
 > as.array(v)
             A  B  C
 2001-05-01  1 25 49
@@ -302,8 +302,8 @@
 > 
 > # check that ordering remains correct even when chunks are inserted in wrong order
 > rm.varray(v)
-> update.varray.ts('v', x[12:15,], comp.name='v.%Y', along=1)
-> update.varray.ts('v', x[-(12:15),])
+> add.tsdata.varray('v', x[12:15,], comp.name='v.%Y', along=1)
+> add.tsdata.varray('v', x[-(12:15),])
 > v
 24 x 3 virtual matrix with dimnames:
    [1] 2001-05-01, 2001-06-01, ..., 2003-04-01 

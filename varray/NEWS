@@ -1,0 +1,4 @@
+2014-04-18
+	o renamed update.varray.ts to add.tsdata.varray (to avoid defining unrelated methods for the 'update' generic)
+	o renamed update.matrix and update.Matrix to add.data.matrix and add.data.Matrix
+	o removed dependency on TimeWarp package for parsing dates -- use base R functionality instead

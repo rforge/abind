@@ -115,7 +115,7 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
     # dimorder:     how to permute the underlying dimensions to arrive at the user-visible ones
     # naidxok:      default for info[[i]]$naidxok
     # env.name:     where to store new components unless otherwise specified (can be NULL)
-    # comp.name:    a format specification for how to derive the component name from the dates
+    # comp.name:    a format specification for how to derive the component name from the dimnames (e.g., dates)
     # keep.ordered: logical; if TRUE, always keep the user-visible dimension ordered
     # umode:        native storage mode of the returned object (e.g., 'numeric', 'integer', 'raw', 'character')
     # fill:         optional; a value to replace missing or NA values with

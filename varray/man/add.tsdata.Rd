@@ -1,10 +1,16 @@
 \name{add.tsdata.varray}
 \alias{add.tsdata.varray}
+\alias{update.varray.ts}
 \title{
   Update the contents of a varray object that stores time series data
 }
 \description{
-  Update the contents of a varray object that stores time series data
+
+  Update the contents of a varray object that stores time series data.
+  The only thing that makes an object time series data is that the
+  dimnames on one dimension are character strings representing parsable
+  times or dates.
+
 }
 \usage{
 add.tsdata.varray(object,
@@ -14,6 +20,7 @@ add.tsdata.varray(object,
 %                 dates.by = "bizdays",
 %                 holidays = "NYSEC",
 %                 vmode = "single",
+                 format = va$format,
                  along = va$along,
                  dimorder = va$dimorder,
                  env.name = va$env.name,
@@ -38,9 +45,15 @@ add.tsdata.varray(object,
 }
 \item{comp.name}{
   Base of name to use for the component objects in the varray.
+  Optional, default value is \code{paste('.', objectName, dateblock)}.
 }
-  \item{dateblock}{
-%%     ~~Describe \code{dateblock} here~~
+\item{dateblock}{
+  How to translate dates into blocks.  Ignored if argument
+  \code{comp.name} is supplied. Default value is \code{"\%Y"}.
+}
+\item{format}{
+  Format for parsing dates (which are supplied as dimension names on the
+  \code{along} dimension).
 }
 %%  \item{dates.by}{}
 %%  \item{holidays}{}
@@ -81,6 +94,8 @@ add.tsdata.varray(object,
 \details{
   Contents of \code{data} are inserted into \code{object}, expanding the
   dimensions of \code{object} and creating new component objects if necessary.
+
+  \code{update.varray.ts} is an obselete name for \code{add.tsdata.varray}.
 }
 \value{
   Invoked for its side effect, which is altering the value of the
@@ -94,10 +109,9 @@ Tony Plate \email{tplate@acm.org}
   \code{\link{add.data.Matrix}}, \code{\link{add.data.matrix}}
 }
 \examples{
-x <- array(1:45, dim=c(15, 3), dimnames=list(dateSeq('2001-04-19', len=15, by='months'), c('A','B','C')))
-y <- array(101:121, dim=c(7, 3), dimnames=list(dateSeq(rownames(x)[nrow(x)], len=7, by='months'), c('B','C','D')))
-z <- array(1:72, dim=c(24, 3), dimnames=list(dateSeq('2001-04-19', len=24, by='months'), c('A','B','C')))
-as.array(varray(x, y, along=1))
+x <- array(1:45, dim=c(15, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=15, by='months')), c('A','B','C')))
+y <- array(101:121, dim=c(7, 3), dimnames=list(format(seq(as.Date(rownames(x)[nrow(x)]), len=7, by='months')), c('B','C','D')))
+z <- array(1:72, dim=c(24, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=24, by='months')), c('A','B','C')))
 add.tsdata.varray('v', z, comp.name='vvv.\%Y', along=1)
 as.array(v)
 add.tsdata.varray('v', y)
