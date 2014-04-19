@@ -1,0 +1,80 @@
+> x <- cbind(A=c(a=1))
+> add.data.matrix('x', cbind(B=c(b=2)))
+> x
+  A B
+a 1 0
+b 0 2
+> x <- cbind(A=c(a=1))
+> add.data.matrix('x', cbind(B=c(b=2)), keep.ordered=F)
+> x
+  A B
+a 1 0
+b 0 2
+> x <- cbind(C=c(c=1))
+> add.data.matrix('x', cbind(B=c(b=2)), keep.ordered=F)
+> x
+  C B
+c 1 0
+b 0 2
+> x <- cbind(C=c(c=1))
+> add.data.matrix('x', cbind(B=c(b=2)), keep.ordered=T)
+> x
+  B C
+b 2 0
+c 0 1
+> x <- cbind(C=c(c=1))
+> add.data.matrix('x', cbind(B=c(b=2)), keep.ordered=c(T,F))
+> x
+  C B
+b 0 2
+c 1 0
+> x <- cbind(C=c(c=1))
+> add.data.matrix('x', cbind(B=c(b=2)), keep.ordered=c(F,T))
+> x
+  B C
+c 0 1
+b 2 0
+> 
+> x <- Matrix(cbind(A=c(a=1)))
+> add.data.Matrix('x', cbind(B=c(b=2)))
+> x
+2 x 2 Matrix of class "dgeMatrix"
+  A B
+a 1 0
+b 0 2
+> x <- Matrix(cbind(A=c(a=1)))
+> add.data.Matrix('x', cbind(B=c(b=2)), keep.ordered=F)
+> x
+2 x 2 Matrix of class "dgeMatrix"
+  A B
+a 1 0
+b 0 2
+> x <- Matrix(cbind(C=c(c=1)))
+> add.data.Matrix('x', cbind(B=c(b=2)), keep.ordered=F)
+> x
+2 x 2 Matrix of class "dgeMatrix"
+  C B
+c 1 0
+b 0 2
+> x <- Matrix(cbind(C=c(c=1)))
+> add.data.Matrix('x', cbind(B=c(b=2)), keep.ordered=T)
+> x
+2 x 2 Matrix of class "dgeMatrix"
+  B C
+b 2 0
+c 0 1
+> x <- Matrix(cbind(C=c(c=1)))
+> add.data.Matrix('x', cbind(B=c(b=2)), keep.ordered=c(T,F))
+> x
+2 x 2 Matrix of class "dgeMatrix"
+  C B
+b 0 2
+c 1 0
+> x <- Matrix(cbind(C=c(c=1)))
+> add.data.Matrix('x', cbind(B=c(b=2)), keep.ordered=c(F,T))
+> x
+2 x 2 Matrix of class "dgeMatrix"
+  B C
+c 0 1
+b 2 0
+> 

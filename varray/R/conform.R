@@ -388,8 +388,11 @@ intersect.dimnames <- function(..., along=NULL) {
     x
 }
 
-# compute the union, and keep the symbols in the same order as in x and y
-# (provided that x and y are consistently ordered)
+# Compute the union, and keep the symbols in the same order as in x and y
+# (provided that x and y are consistently ordered).
+
+# Differs from union() in elements of y that are not in x can
+# still appear before elements of x in the output.
 
 # union.ordered(c("a","b","d","g"),c("a","c","e","g"))
 # union.ordered(c("c","b"), c("a","c","d"))

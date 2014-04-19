@@ -356,3 +356,102 @@ sub-array 3: 'v.2003' (found in env '.GlobalEnv') 4 x 3 matrix with dimnames:
 2003-03-01 23 47 71
 2003-04-01 24 48 72
 > 
+> add.tsdata.varray('A', rbind('2001-01-01'=c(B=2)), comp.name='vA.%Y', along=1)
+> add.tsdata.varray('A', rbind('2000-01-01'=c(A=1)))
+> add.tsdata.varray('A', rbind('2002-01-01'=c(C=3)))
+> A
+3 x 3 virtual matrix with dimnames:
+   [1] 2000-01-01, 2001-01-01, 2002-01-01 
+   [2] A, B, C 
+with 3 sub-arrays:
+sub-array 1: 'vA.2000' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2000-01-01 
+   [2] A 
+sub-array 2: 'vA.2001' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2001-01-01 
+   [2] B 
+sub-array 3: 'vA.2002' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2002-01-01 
+   [2] C 
+> as.array(A)
+            A  B  C
+2000-01-01  1 NA NA
+2001-01-01 NA  2 NA
+2002-01-01 NA NA  3
+> rm.varray('A')
+> 
+> # with keep.ordered=FALSE
+> add.tsdata.varray('A', rbind('2001-01-01'=c(B=2)), comp.name='vA.%Y', along=1, keep.ordered=FALSE)
+> add.tsdata.varray('A', rbind('2000-01-01'=c(A=1)))
+> add.tsdata.varray('A', rbind('2002-01-01'=c(C=3)))
+> A
+3 x 3 virtual matrix with dimnames:
+   [1] 2001-01-01, 2000-01-01, 2002-01-01 
+   [2] B, A, C 
+with 3 sub-arrays:
+sub-array 1: 'vA.2001' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2001-01-01 
+   [2] B 
+sub-array 2: 'vA.2000' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2000-01-01 
+   [2] A 
+sub-array 3: 'vA.2002' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2002-01-01 
+   [2] C 
+> as.array(A)
+            B  A  C
+2001-01-01  2 NA NA
+2000-01-01 NA  1 NA
+2002-01-01 NA NA  3
+> rm.varray('A')
+> 
+> # with keep.ordered=TRUE,FALSE
+> add.tsdata.varray('A', rbind('2001-01-01'=c(B=2)), comp.name='vA.%Y', along=1, keep.ordered=c(TRUE,FALSE))
+> add.tsdata.varray('A', rbind('2000-01-01'=c(A=1)))
+> add.tsdata.varray('A', rbind('2002-01-01'=c(C=3)))
+> A
+3 x 3 virtual matrix with dimnames:
+   [1] 2000-01-01, 2001-01-01, 2002-01-01 
+   [2] B, A, C 
+with 3 sub-arrays:
+sub-array 1: 'vA.2000' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2000-01-01 
+   [2] A 
+sub-array 2: 'vA.2001' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2001-01-01 
+   [2] B 
+sub-array 3: 'vA.2002' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2002-01-01 
+   [2] C 
+> as.array(A)
+            B  A  C
+2000-01-01 NA  1 NA
+2001-01-01  2 NA NA
+2002-01-01 NA NA  3
+> rm.varray('A')
+> 
+> # with keep.ordered=FALSE,TRUE
+> add.tsdata.varray('A', rbind('2001-01-01'=c(B=2)), comp.name='vA.%Y', along=1, keep.ordered=c(FALSE,TRUE))
+> add.tsdata.varray('A', rbind('2000-01-01'=c(A=1)))
+> add.tsdata.varray('A', rbind('2002-01-01'=c(C=3)))
+> A
+3 x 3 virtual matrix with dimnames:
+   [1] 2001-01-01, 2000-01-01, 2002-01-01 
+   [2] A, B, C 
+with 3 sub-arrays:
+sub-array 1: 'vA.2001' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2001-01-01 
+   [2] B 
+sub-array 2: 'vA.2000' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2000-01-01 
+   [2] A 
+sub-array 3: 'vA.2002' (found in env '.GlobalEnv') 1 x 1 matrix with dimnames:
+   [1] 2002-01-01 
+   [2] C 
+> as.array(A)
+            A  B  C
+2001-01-01 NA  2 NA
+2000-01-01  1 NA NA
+2002-01-01 NA NA  3
+> rm.varray('A')
+> 

@@ -78,6 +78,8 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
         stop("must specify 'along'")
     if (is.null(dimorder))
         dimorder <- seq(length=length(dd))
+    if (!identical(sort(as.numeric(dimorder)), as.numeric(seq(length(dd)))))
+        stop('dimorder must be some permutation of 1:length(dim)')
     if (is.null(naidxok))
         naidxok <- NA
     if (is.null(format))
@@ -196,15 +198,6 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
             assign(va$info[[this.i]]$name, envir=env, value=comp.data, inherits=FALSE)
         }
     }
-    dn <- lapply(seq(len=length(va$info[[1]]$dim)), function(i)
-                 unique(unlist(lapply(va$info, function(x) x$dimnames[[i]]))))
-    d <- sapply(dn, length)
-    if (is.null(dimorder))
-        dimorder <- seq(length(d))
-    else
-        if (!identical(sort(as.numeric(dimorder)), as.numeric(seq(length(d)))))
-            stop('dimorder must be some permutation of 1:length(d)')
-    rdimorder <- order(dimorder)
     alongd <- rdimorder[along]
     if (keep.ordered[along]) {
         # reorder the component objects based on the first element of their 'along' dimname
@@ -213,17 +206,22 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
         if (!all(diff(el1ord)==1))
             va$info <- va$info[el1ord]
     }
-    va$along.idx <- integer(d[alongd])
-    naidxok <- all(sapply(va$info, '[[', 'naidxok'))
+    # Construct the dimnames of the overall object.
+    # Do this by combining old and new, rather than piecing
+    # together from the components, because doing it the
+    # latter way loses the order of construction that we
+    # want to retain when keep.ordered=FALSE.
+    # dn <- lapply(seq(len=length(va$info[[1]]$dim)), function(i) unique(unlist(lapply(va$info, function(x) x$dimnames[[i]]))))
     # convert d,dn to user dimorder
-    if (!all(dimorder == seq(length(d)))) {
-        d <- d[dimorder]
-        dn <- dn[dimorder]
-    }
+    # if (!all(dimorder == seq(length(d)))) {d <- d[dimorder]; dn <- dn[dimorder]}
+    # We are constructing d and dn in user space here, so don't need to apply dimorder perm
+    dn <- mapply(union, adn, ddn, SIMPLIFY=FALSE)
+    d <- sapply(dn, length)
     if (is.null(keep.ordered) || any(keep.ordered))
-        dn[keep.orderedr] <- lapply(dn[keep.orderedr], sort, na.last=TRUE)
+        dn[keep.ordered] <- lapply(dn[keep.ordered], sort, na.last=TRUE)
     # fix 'map' in all info components
     # eventually, record which components were changed, and only update those
+    va$along.idx <- integer(d[along])
     for (i in seq(to=1, from=length(va$info))) {
         va$along.idx[match(va$info[[i]]$dimnames[[alongd]], dn[[along]])] <- i
         va$info[[i]]$map <- lapply(seq(along=dn), function(j) match(dn[[j]], va$info[[i]]$dimnames[[rdimorder[j]]]))[rdimorder]

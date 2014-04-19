@@ -598,6 +598,9 @@ rm.varray <- function(x, list=NULL) {
     }
     for (x.name in list) {
         env <- find(x.name, numeric=TRUE)
+        if (length(env)==0)
+            stop("'", x.name, "' not found")
+        env <- env[1]
         x <- get(x.name, pos=env)
         if (!inherits(x, 'varray'))
             stop('must supply the name of a varray object')

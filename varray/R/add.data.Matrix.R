@@ -31,8 +31,8 @@ add.data.Matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.o
         new <- setdiff(dn[[2]], colnames(x))
         if (length(new))
             x <- cBind(x, array(sample, dimnames=list(rownames(x), new), dim=c(nrow(x), length(new))))
-        if (!isTRUE(all.equal(rownames(x), dn[[1]])))
-            x <- x[dn[[1]],,drop=FALSE]
+        if (!isTRUE(all.equal(colnames(x), dn[[2]])))
+            x <- x[,dn[[2]],drop=FALSE]
     }
     ii <- cbind(rep(match(rownames(data), rownames(x)), ncol(data)),
                 rep(match(colnames(data), colnames(x)), each=nrow(data)))
@@ -73,8 +73,8 @@ add.data.matrix <- function(object, data, need.dimnames=list(NULL, NULL), keep.o
         new <- setdiff(dn[[2]], colnames(x))
         if (length(new))
             x <- cbind(x, array(sample, dimnames=list(rownames(x), new), dim=c(nrow(x), length(new))))
-        if (!isTRUE(all.equal(rownames(x), dn[[1]])))
-            x <- x[dn[[1]],,drop=FALSE]
+        if (!isTRUE(all.equal(colnames(x), dn[[2]])))
+            x <- x[,dn[[2]],drop=FALSE]
     }
     ii <- cbind(rep(match(rownames(data), rownames(x)), ncol(data)),
                 rep(match(colnames(data), colnames(x)), each=nrow(data)))
