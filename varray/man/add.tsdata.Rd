@@ -14,23 +14,23 @@
 }
 \usage{
 add.tsdata.varray(object,
-                 data,
-                 comp.name = va$comp.name,
-                 dateblock = "\%Y",
+                  data,
+                  comp.name = va$comp.name,
+                  dateblock = "\%Y",
 %                 dates.by = "bizdays",
 %                 holidays = "NYSEC",
 %                 vmode = "single",
-                 format = va$format,
-                 along = va$along,
-                 dimorder = va$dimorder,
-                 env.name = va$env.name,
-                 envir = NULL,
-                 naidxok = va$naidxok,
-                 keep.ordered = va$keep.ordered,
-                 umode = NULL,
-                 store.env.name = FALSE,
-                 fill = NA,
-                 ...)
+                  format = va$format,
+                  along = va$along,
+                  dimorder = va$dimorder,
+                  env.name = va$env.name,
+                  envir = NULL,
+                  naidxok = va$naidxok,
+                  keep.ordered = va$keep.ordered,
+                  umode = NULL,
+                  store.env.name = FALSE,
+                  fill = NA,
+                  ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -58,17 +58,19 @@ add.tsdata.varray(object,
 %%  \item{dates.by}{}
 %%  \item{holidays}{}
 %%  \item{vmode}{}
-  \item{along}{
-%%     ~~Describe \code{along} here~~
+\item{along}{
+  Default is 1.
 }
-  \item{dimorder}{
-%%     ~~Describe \code{dimorder} here~~
+\item{dimorder}{
+  Default is standard dim order.
 }
-  \item{env.name}{
-%%     ~~Describe \code{env.name} here~~
+\item{env.name}{
+  Intended to be the name of the environment where the components exist,
+  not yet fully tested.
 }
   \item{envir}{
-%%     ~~Describe \code{envir} here~~
+  Intended to be the environment where the components exist,
+  not yet fully tested.
 }
 \item{naidxok}{
   Set this attribute on the varray.  Specifies whether the component objects can handle \code{NA} indices.
@@ -106,7 +108,7 @@ Tony Plate \email{tplate@acm.org}
 }
 
 \seealso{
-  \code{\link{add.data.Matrix}}, \code{\link{add.data.matrix}}
+  \code{\link{add.data.Matrix}}, \code{\link{add.data.matrix}}, \code{\link{varray}}
 }
 \examples{
 x <- array(1:45, dim=c(15, 3), dimnames=list(format(seq(as.Date('2001-05-01'), len=15, by='months')), c('A','B','C')))

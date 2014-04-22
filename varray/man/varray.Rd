@@ -15,8 +15,8 @@
 varray(\dots, along = 1, dimorder = NULL, env.name = FALSE, envir = NULL,
        naidxok = NA, dimnames = NULL, comp.name = NULL,
        keep.ordered = TRUE, umode = NULL, fill = NULL)
-\method{as.array}{varray}(x, \dots)
-\method{as.matrix}{varray}(x, \dots)
+\method{as.array}{varray}(x, \dots, fill = x$fill)
+\method{as.matrix}{varray}(x, \dots, fill = x$fill)
 rebuild.varray(x)
 }
 \arguments{
@@ -73,7 +73,8 @@ rebuild.varray(x)
   The storage mode of the component objects.
 }
 \item{fill}{
-  The value which is returned instead of explicit or implicit NAs.
+  The value that is returned instead of implicit NAs (array elements that do not
+  exist in the explicitly stored data).
 }
 }
 \details{
@@ -128,5 +129,9 @@ x[c('a'),c('x','z'),drop=FALSE]
 x[c('d','b','c'),c('y','z'),drop=FALSE]
 b <- b[-2,]
 x <- rebuild.varray(x)
+
+# fill arg on as.matrix does not replace explicit stored NA's
+y <- varray(cbind(A=c(a=1)), cbind(B=c(b=NA)))
+as.matrix(y, fill=0)
 }
 \keyword{ misc }

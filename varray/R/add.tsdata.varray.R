@@ -7,7 +7,6 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
     # have ... args to satisfy the generic function
     if (length(list(...)))
         warning('additional arguments ignored: ', paste(names(list(...)), collapse=', '))
-    non.null <- function(x, y) if (!is.null(x)) x else y
     # TODO:
     #   Force use of umode
     #
@@ -75,7 +74,7 @@ add.tsdata.varray <- function(object, data, comp.name=va$comp.name, dateblock='%
                      length(va$info[[1]]$dim), ' vs ', length(dd))
 
     if (is.null(along))
-        stop("must specify 'along'")
+        along <- 1
     if (is.null(dimorder))
         dimorder <- seq(length=length(dd))
     if (!identical(sort(as.numeric(dimorder)), as.numeric(seq(length(dd)))))

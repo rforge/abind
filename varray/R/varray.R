@@ -38,9 +38,11 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
         dotargs <- match.call(expand.dots=FALSE)$...
         info <- mapply(list(...), dotargs, SIMPLIFY=FALSE, FUN=function(x, arg) {
             if (is.name(arg)) {
+                have.value <- FALSE
                 name <- as.character(arg)
                 x.env.name <- fixGlobalEnvName(find(name))
             } else if (is.character(arg) && length(arg)==1) {
+                have.value <- FALSE
                 name <- arg
                 if (!is.null(envir)) {
                     x <- get(name, envir=envir)
@@ -50,8 +52,9 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
                     x <- get(name)
                 }
             } else {
-                # could consider storing value inside the varray
-                stop('arguments must be character data or names')
+                # store a value inside the varray
+                have.value <- TRUE
+                name <- deparse(arg, nlines=1)
             }
             if (!env.name)
                 x.env.name <- NULL
@@ -60,9 +63,14 @@ varray <- function(..., along=1, dimorder=NULL, env.name=FALSE, envir=NULL, naid
             if (is.null(dimnames(x)))
                 stop('argument ', name, ' does not refer to an array')
             sample <- asub(x, rep(list(1), length(dim(x))))
-            list(name=name, dim=dim(x), dimnames=dimnames(x),
-                 env.name=x.env.name, sample=sample,
-                 naidxok=if (is.na(naidxok)) inherits(x, 'ff') else naidxok)
+            if (have.value)
+                list(value=x, dim=dim(x), dimnames=dimnames(x),
+                     env.name=x.env.name, sample=sample,
+                     naidxok=if (is.na(naidxok)) inherits(x, 'ff') else naidxok)
+            else
+                list(name=name, dim=dim(x), dimnames=dimnames(x),
+                     env.name=x.env.name, sample=sample,
+                     naidxok=if (is.na(naidxok)) inherits(x, 'ff') else naidxok)
         })
     }
     if (along < 1 || along > length(info[[1]]$dim))
@@ -187,8 +195,8 @@ fixGlobalEnvName <- function(name) {
     else name
 }
 
-as.array.varray <- function(x, ...) {
-    fill <- if (is.null(x$fill)) NA else x$fill
+as.array.varray <- function(x, ..., fill=x$fill) {
+    if (is.null(fill)) fill <- NA
     rdimorder <- order(x$dimorder)
     alongd <- rdimorder[x$along]
     y <- abind(along=alongd, lapply(x$info,
@@ -200,8 +208,8 @@ as.array.varray <- function(x, ...) {
                        z <- get(comp$name, pos=1)
                    else
                        z <- get(comp$name, envir=as.environment(comp$env.name))
-                   if (!is.na(fill) && any(i <- is.na(z)))
-                       z[i] <- fill
+                   # don't replace explicit NA's with fill
+                   # if (!is.na(fill) && any(i <- is.na(z))) z[i] <- fill
                    conform(z, x$dimnames[rdimorder], along=seq(len=length(x$dim))[-alongd], fill=fill)
                }))
     if (!all(x$dimorder == seq(length(x$dim))))
@@ -211,15 +219,25 @@ as.array.varray <- function(x, ...) {
     y
 }
 
-as.matrix.varray <- function(x, ...) {
+as.matrix.varray <- function(x, ..., fill=x$fill) {
+    if (is.null(fill)) fill <- NA
     if (length(x$dim)==2)
-        as.array.varray(x, ...)
+        as.array.varray(x, ..., fill=fill)
     else
-        as.matrix(as.array.varray(x, ...))
+        as.matrix(as.array.varray(x, ..., fill=fill))
 }
 
-# as.array does not work on data.frame objects...
-M <- function(x, ...) if (non.null(length(dim(x)), 1)>2) as.array(x, ...) else as.matrix(x, ...)
+non.null <- function(x, y) if (!is.null(x)) x else y
+
+# as.array does not work on data.frame objects, so make sure to call as.matrix on 2-d objects
+M <- function(x) {
+    if (is.atomic(x) && !is.virtual.array)
+        return(x)
+    else if (non.null(length(dim(x)), 1)>2)
+        as.array(x)
+    else
+        as.matrix(x)
+}
 
 print.varray <- function(x, ...) {
     dot3 <- function(n) if (n<=4) seq(len=n) else c(1,2,NA,n)

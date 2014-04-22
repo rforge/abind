@@ -35,7 +35,7 @@ Dimension names that should be included in the updated object.
   dimensions of \code{object}.
 }
 \item{\dots}{
-  Not used, but needed because \code{add.data()} is a generic.
+  Not used, but needed because \code{add.data()} could be a generic.
 }
 }
 \details{
@@ -45,6 +45,10 @@ Dimension names that should be included in the updated object.
   \code{update.matrix} is an obselete name for \code{add.data.matrix}.
 
   \code{update.Matrix} is an obselete name for \code{add.data.Matrix}.
+
+  The \code{x} parameter is supplied by name rather than by value
+  because it is modified.
+
 }
 \value{
   Invoked for its side effect, which is altering the value of the
@@ -61,5 +65,8 @@ Tony Plate \email{tplate@acm.org}
   \code{\link{add.tsdata.varray}}
 }
 \examples{
+x <- cbind(A=c(a=1))
+add.data.matrix('x', cbind(B=c(b=2)))
+x
 }
 \keyword{ misc }

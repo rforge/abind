@@ -1,4 +1,11 @@
 > options(error=function() NULL)
+> # fill arg on as.matrix does not replace explicit stored NA's
+> y <- varray(cbind(A=c(a=1)), cbind(B=c(b=NA)))
+> as.matrix(y, fill=0)
+  A  B
+a 1  0
+b 0 NA
+> 
 > a <- array(1:6, dim=c(2,3), dimnames=list(letters[1:2],letters[23:25]))
 > b <- array(7:15, dim=c(3,3), dimnames=list(letters[3:5],letters[24:26]))
 > x <- varray(a,b)
