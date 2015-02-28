@@ -15,8 +15,8 @@ acorn.default <- function(x, n=6, m=5, r=1, ..., addrownums = TRUE) {
         as <- c(as, list(ms))
     }
     if (length(dim(x))>2) {
-        r <- sign(r)*min(abs(r), ntril(x))
-        rs <- if (r >= 0) seq(len=r) else seq(len=-r, to=ntril(x))
+        r <- sign(r)*min(abs(r), dim(x)[3])
+        rs <- if (r >= 0) seq(len=r) else seq(len=-r, to=dim(x)[3])
         as <- c(as, list(rs))
     }
     if (length(dim(x))>3) {
