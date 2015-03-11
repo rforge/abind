@@ -1,13 +1,13 @@
 Package: abind
-Version: 1.4-2
-Date: 2015-02-04
-Title: Combine multi-dimensional arrays
+Version: 1.4-3
+Date: 2015-03-05
+Title: Combine Multidimensional Arrays
 Author: Tony Plate <tplate@acm.org> and Richard Heiberger
 Maintainer: Tony Plate <tplate@acm.org>
-Description: Combine multi-dimensional arrays into a single array.
-  This is a generalization of cbind and rbind.  Works with
+Description: Combine multidimensional arrays into a single array.
+  This is a generalization of 'cbind' and 'rbind'.  Works with
   vectors, matrices, and higher-dimensional arrays.  Also
-  provides functions adrop, asub, and afill for manipulating,
+  provides functions 'adrop', 'asub', and 'afill' for manipulating,
   extracting and replacing data in arrays.
 Depends: R (>= 1.5.0)
 License: LGPL (>=2)
